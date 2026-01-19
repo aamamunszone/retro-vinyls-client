@@ -49,6 +49,17 @@ const authOptions = {
   jwt: {
     maxAge: 24 * 60 * 60, // 24 hours
   },
+  cookies: {
+    sessionToken: {
+      name: 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       // Persist user data in the token
@@ -67,6 +78,8 @@ const authOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // Ensure NEXTAUTH_URL is properly recognized
+  url: process.env.NEXTAUTH_URL,
 };
 
 const handler = NextAuth(authOptions);
