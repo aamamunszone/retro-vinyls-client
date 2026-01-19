@@ -57,6 +57,7 @@ const authOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,,
       },
     },
   },
@@ -78,8 +79,10 @@ const authOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  // Ensure NEXTAUTH_URL is properly recognized
+  // Production configuration
+  trustHost: true,
   url: process.env.NEXTAUTH_URL,
+  debug: process.env.NODE_ENV === 'development',
 };
 
 const handler = NextAuth(authOptions);

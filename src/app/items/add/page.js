@@ -33,16 +33,25 @@ export default function AddItemPage() {
       <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-[#B08968] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[#6B5B5B]">Loading...</p>
+          <p className="text-[#6B5B5B]">Checking authentication...</p>
         </div>
       </div>
     );
   }
 
-  if (!session) {
-    router.push('/login');
-    return null;
+  if (status === 'unauthenticated' || !session) {
+    console.log('User not authenticated, redirecting to login');
+    router.push('/login?callbackUrl=/items/add');
+    return (
+      <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[#6B5B5B]">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
+
+  console.log('User authenticated:', session.user);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
