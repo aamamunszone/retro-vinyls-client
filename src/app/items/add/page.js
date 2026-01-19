@@ -170,8 +170,6 @@ export default function AddItemPage() {
     setErrors({});
 
     try {
-      console.log('🚀 Starting form submission...');
-
       // Client-side validation
       const validation = validateVinylForm(formData);
 
@@ -189,7 +187,6 @@ export default function AddItemPage() {
 
       // Format data for API
       const itemData = formatVinylData(formData);
-      console.log('📝 Formatted item data:', itemData);
 
       // API Configuration
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -200,13 +197,11 @@ export default function AddItemPage() {
       }
 
       const endpoint = `${apiUrl}/api/items`;
-      console.log('🌐 Submitting to:', endpoint);
 
       // Create request with timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
-        console.error('❌ Request timeout after 20 seconds');
       }, 20000);
 
       // API Request
@@ -222,12 +217,6 @@ export default function AddItemPage() {
 
       clearTimeout(timeoutId);
 
-      console.log('📡 Response status:', response.status);
-      console.log(
-        '📡 Response headers:',
-        Object.fromEntries(response.headers.entries()),
-      );
-
       // Handle response
       if (!response.ok) {
         let errorData;
@@ -240,14 +229,15 @@ export default function AddItemPage() {
           };
         }
 
-        console.error('❌ API Error Response:', errorData);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ API Error Response:', errorData);
+        }
         throw new Error(
           errorData.message || `Server error: ${response.status}`,
         );
       }
 
       const result = await response.json();
-      console.log('✅ Success response:', result);
 
       if (!result.success) {
         throw new Error(
@@ -280,7 +270,9 @@ export default function AddItemPage() {
         router.push('/items');
       }, 2000);
     } catch (error) {
-      console.error('❌ Form submission error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ Form submission error:', error);
+      }
 
       let errorMessage = 'Failed to add vinyl record. Please try again.';
 

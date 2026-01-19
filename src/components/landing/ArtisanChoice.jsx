@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Star, Award, Clock, ShoppingCart } from 'lucide-react';
+import Image from 'next/image';
 
 export default function ArtisanChoice() {
   const [timeLeft, setTimeLeft] = useState({
@@ -38,7 +39,7 @@ export default function ArtisanChoice() {
   }, []);
 
   return (
-    <section className="py-20 bg-gradient-to-br from-[#2C2C2C] via-[#3A3A3A] to-[#2C2C2C] relative overflow-hidden">
+    <section className="py-20 bg-linear-to-br from-[#2C2C2C] via-[#3A3A3A] to-[#2C2C2C] relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div
@@ -145,14 +146,19 @@ export default function ArtisanChoice() {
           {/* Image Side */}
           <div className="relative">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="Pet Sounds vinyl record"
+                alt="Pet Sounds vinyl record by The Beach Boys - Artisan's Choice featured album"
+                width={800}
+                height={800}
                 className="w-full h-[600px] object-cover"
+                priority
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
               />
 
               {/* Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#CC5500]/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-linear-to-t from-[#CC5500]/20 to-transparent"></div>
 
               {/* Floating Badge */}
               <div className="absolute top-6 right-6 bg-white rounded-full p-4 shadow-lg">

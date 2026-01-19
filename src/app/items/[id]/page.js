@@ -20,6 +20,17 @@ import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { SkeletonDetailsPage } from '@/components/ui/SkeletonLoader';
 
+// Metadata for SEO
+export const metadata = {
+  title: 'Vinyl Record Details | RetroVinyls',
+  description:
+    'View detailed information about this vintage vinyl record including condition, pricing, specifications, and authenticity details.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
 export default function ItemDetailsPage() {
   const params = useParams();
   const [item, setItem] = useState(null);
@@ -29,8 +40,6 @@ export default function ItemDetailsPage() {
   const id = params?.id;
 
   useEffect(() => {
-    console.log('🔍 Component mounted, ID:', id);
-
     if (!id) {
       setError('No item ID provided');
       setLoading(false);
@@ -39,19 +48,16 @@ export default function ItemDetailsPage() {
 
     const fetchItem = async () => {
       try {
-        console.log('🚀 Starting fetch for ID:', id);
         setLoading(true);
         setError(null);
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        console.log('🌐 API URL:', apiUrl);
 
         if (!apiUrl) {
           throw new Error('API configuration is missing');
         }
 
         const fetchUrl = `${apiUrl}/api/items/${id}`;
-        console.log('📡 Fetching from:', fetchUrl);
 
         const response = await fetch(fetchUrl, {
           method: 'GET',
@@ -61,27 +67,18 @@ export default function ItemDetailsPage() {
           },
         });
 
-        console.log('📥 Response received:', {
-          status: response.status,
-          ok: response.ok,
-          statusText: response.statusText,
-        });
-
         if (!response.ok) {
           if (response.status === 404) {
             setError('Product Not Found');
             return;
           }
 
-          const errorText = await response.text().catch(() => 'Unknown error');
-          console.error('❌ API Error Response:', errorText);
           throw new Error(
             `Server error: ${response.status} ${response.statusText}`,
           );
         }
 
         const result = await response.json();
-        console.log('✅ API Response parsed:', result);
 
         if (!result.success) {
           throw new Error(result.message || 'Failed to fetch item');
@@ -91,13 +88,13 @@ export default function ItemDetailsPage() {
           throw new Error('No item data received');
         }
 
-        console.log('💾 Setting item data:', result.data);
         setItem(result.data);
       } catch (err) {
-        console.error('💥 Fetch error:', err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('💥 Fetch error:', err);
+        }
         setError(err.message || 'Failed to load item');
       } finally {
-        console.log('🏁 Fetch completed, setting loading to false');
         setLoading(false);
       }
     };

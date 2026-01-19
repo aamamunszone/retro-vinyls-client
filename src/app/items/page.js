@@ -102,7 +102,9 @@ export default function ItemsPage() {
         setTotalCount(result.count || 0);
         setError(null);
       } catch (err) {
-        console.error('❌ Error fetching items:', err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ Error fetching items:', err);
+        }
         setError(err.message);
         setItems([]);
         setTotalCount(0);

@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 export default function CuratedCategories() {
   const categories = [
@@ -63,15 +64,17 @@ export default function CuratedCategories() {
             >
               {/* Background Image */}
               <div className="relative h-80">
-                <img
+                <Image
                   src={category.image}
-                  alt={category.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  alt={`${category.name} vinyl records collection`}
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
 
                 {/* Gradient Overlay */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-t ${category.color} opacity-60 group-hover:opacity-70 transition-opacity duration-300`}
+                  className={`absolute inset-0 bg-linear-to-t ${category.color} opacity-60 group-hover:opacity-70 transition-opacity duration-300`}
                 ></div>
 
                 {/* Content Overlay */}

@@ -18,8 +18,6 @@ export async function GET() {
       );
     }
 
-    console.log('Testing connection to:', `${apiUrl}/health`);
-
     // Create timeout controller manually for better compatibility
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -44,7 +42,9 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Health check failed:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Health check failed:', error);
+    }
 
     return Response.json(
       {
