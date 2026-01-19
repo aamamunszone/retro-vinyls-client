@@ -551,10 +551,3 @@ export default function ItemsPage() {
     </div>
   );
 }
-
-// Metadata for SEO
-export const metadata = {
-  title: 'Vinyl Records Collection | RetroVinyls',
-  description:
-    'Browse our carefully curated collection of vintage vinyl records. From classic rock to jazz essentials, find your next musical treasure.',
-};
