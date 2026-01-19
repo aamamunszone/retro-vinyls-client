@@ -6,15 +6,60 @@ import ErrorState from '@/components/ui/ErrorState';
 import EmptyState from '@/components/ui/EmptyState';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 
-// Server Component - fetch data using centralized API utilities
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
+// Server Component - fetch data with robust error handling
 async function getItems() {
   try {
-    const data = await itemsApi.getAll();
-    return { success: true, ...data };
+    // Ensure API URL is available with fallback
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    if (!apiUrl) {
+      console.error('NEXT_PUBLIC_API_URL is not configured');
+      return {
+        success: false,
+        error: 'API configuration missing',
+        data: [],
+        count: 0,
+      };
+    }
+
+    console.log('Fetching items from:', `${apiUrl}/api/items`);
+
+    const res = await fetch(`${apiUrl}/api/items`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      // Add timeout for Vercel
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('API Error:', res.status, res.statusText, errorText);
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const result = await res.json();
+    console.log('Items fetched successfully:', result.count || 0, 'items');
+
+    return {
+      success: true,
+      data: result.data || [],
+      count: result.count || 0,
+    };
   } catch (error) {
+    console.error('Error fetching items:', error.message);
+
+    // Return safe fallback instead of crashing
     return {
       success: false,
       error: error.message,
+      data: [],
+      count: 0,
     };
   }
 }
@@ -24,6 +69,7 @@ export default async function ItemsPage() {
 
   // Handle error state with professional error component
   if (!result.success) {
+    console.error('Items page error:', result.error);
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24">
         <div className="max-w-7xl mx-auto container-padding">
@@ -41,7 +87,7 @@ export default async function ItemsPage() {
     );
   }
 
-  const { data: items, count } = result;
+  const { data: items = [], count = 0 } = result;
 
   return (
     <div className="min-h-screen bg-[#FFFBEB]">

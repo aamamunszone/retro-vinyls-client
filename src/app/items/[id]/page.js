@@ -12,6 +12,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Button from '@/components/ui/Button';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Server Component - fetch single item data
 async function getItem(id) {
   try {
@@ -19,27 +22,34 @@ async function getItem(id) {
 
     // Handle missing environment variable during build
     if (!apiUrl) {
-      console.warn('NEXT_PUBLIC_API_URL is not defined');
+      console.error('NEXT_PUBLIC_API_URL is not defined');
       return null;
     }
 
+    console.log('Fetching item from:', `${apiUrl}/api/items/${id}`);
+
     const res = await fetch(`${apiUrl}/api/items/${id}`, {
       cache: 'no-store', // Always fetch fresh data
-      next: { revalidate: 0 }, // Ensure no caching in Vercel
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      // Add timeout for Vercel
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!res.ok) {
       if (res.status === 404) {
+        console.log('Item not found:', id);
         return null; // Item not found
       }
-      throw new Error('Failed to fetch item');
+      const errorText = await res.text();
+      console.error('API Error:', res.status, res.statusText, errorText);
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
 
     const result = await res.json();
+    console.log('Item fetched successfully:', result.data?.name);
     return result.data;
   } catch (error) {
     console.error('Error fetching item:', error);

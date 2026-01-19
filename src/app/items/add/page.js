@@ -145,8 +145,41 @@ export default function AddItemPage() {
       // Format data for API submission
       const itemData = formatVinylData(formData);
 
-      // Submit using centralized API utility
-      const result = await itemsApi.create(itemData);
+      // Direct API call with better error handling
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+      if (!apiUrl) {
+        throw new Error('API configuration missing');
+      }
+
+      console.log('Submitting item to:', `${apiUrl}/api/items`);
+      console.log('Item data:', itemData);
+
+      const res = await fetch(`${apiUrl}/api/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(itemData),
+        // Add timeout for Vercel
+        signal: AbortSignal.timeout(15000),
+      });
+
+      console.log('Response status:', res.status);
+
+      if (!res.ok) {
+        const errorData = await res
+          .json()
+          .catch(() => ({ message: 'Unknown error' }));
+        console.error('API Error Response:', errorData);
+        throw new Error(
+          errorData.message || `HTTP ${res.status}: ${res.statusText}`,
+        );
+      }
+
+      const result = await res.json();
+      console.log('Item created successfully:', result);
 
       toast.success(
         '🎵 Vinyl record added successfully! Redirecting to collection...',
@@ -172,6 +205,7 @@ export default function AddItemPage() {
         router.push('/items');
       }, 1500);
     } catch (error) {
+      console.error('Submit error:', error);
       toast.error(
         error.message || 'Failed to add vinyl record. Please try again.',
       );
