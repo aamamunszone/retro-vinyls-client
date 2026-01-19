@@ -12,22 +12,6 @@ import Button from '@/components/ui/Button';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
-
-// Import Swiper modules dynamically
-const swiperModules = dynamic(
-  () =>
-    import('swiper/modules').then((mod) => ({
-      Pagination: mod.Pagination,
-      Autoplay: mod.Autoplay,
-      EffectFade: mod.EffectFade,
-    })),
-  {
-    ssr: false,
-  },
-);
-
-// Import Swiper styles
-import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
