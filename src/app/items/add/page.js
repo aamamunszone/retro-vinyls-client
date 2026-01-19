@@ -27,7 +27,11 @@ export default function AddItemPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if not authenticated (backup to middleware)
+  // Enhanced authentication check with detailed logging
+  console.log('🔐 AddItem - Session status:', status);
+  console.log('🔐 AddItem - Session data:', session);
+  console.log('🔐 AddItem - User:', session?.user);
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
@@ -39,9 +43,16 @@ export default function AddItemPage() {
     );
   }
 
-  if (status === 'unauthenticated' || !session) {
-    console.log('User not authenticated, redirecting to login');
-    router.push('/login?callbackUrl=/items/add');
+  if (status === 'unauthenticated' || !session?.user?.email) {
+    console.log('🔐 AddItem - User not authenticated, redirecting to login');
+    console.log('🔐 AddItem - Status:', status);
+    console.log('🔐 AddItem - Session:', session);
+
+    // Use window.location for hard redirect to ensure proper session handling
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login?callbackUrl=/items/add';
+    }
+
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
         <div className="text-center">
@@ -51,7 +62,7 @@ export default function AddItemPage() {
     );
   }
 
-  console.log('User authenticated:', session.user);
+  console.log('🔐 AddItem - User authenticated:', session.user.email);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
