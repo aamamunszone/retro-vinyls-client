@@ -90,13 +90,16 @@ export default function AddItemPage() {
         rating: parseFloat(formData.rating),
       };
 
-      const response = await fetch('http://localhost:5000/api/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/items`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(itemData),
         },
-        body: JSON.stringify(itemData),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();

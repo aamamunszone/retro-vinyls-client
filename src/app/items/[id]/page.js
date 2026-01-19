@@ -14,9 +14,12 @@ import { notFound } from 'next/navigation';
 // Server Component - fetch single item data
 async function getItem(id) {
   try {
-    const res = await fetch(`http://localhost:5000/api/items/${id}`, {
-      cache: 'no-store', // Always fetch fresh data
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/items/${id}`,
+      {
+        cache: 'no-store', // Always fetch fresh data
+      },
+    );
 
     if (!res.ok) {
       if (res.status === 404) {

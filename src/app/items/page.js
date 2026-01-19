@@ -5,7 +5,7 @@ import Link from 'next/link';
 // Server Component - fetch data on the server
 async function getItems() {
   try {
-    const res = await fetch('http://localhost:5000/api/items', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/items`, {
       cache: 'no-store', // Always fetch fresh data
     });
 
