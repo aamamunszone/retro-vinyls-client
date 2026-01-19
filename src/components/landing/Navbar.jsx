@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Menu, X, Disc3, User, Plus } from 'lucide-react';
+import { Menu, X, Disc3, User, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
+import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +22,15 @@ export default function Navbar() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut({ callbackUrl: '/' });
+      toast.success('Logged out successfully');
+    } catch (error) {
+      toast.error('Error logging out');
+    }
   };
 
   const navLinks = [
@@ -49,6 +61,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
+          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
@@ -61,20 +74,37 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Login Button */}
-            <button className="btn-primary text-sm">
-              <User className="w-4 h-4" />
-              Login
-            </button>
+            {/* Authentication Buttons */}
+            {status === 'loading' ? (
+              <div className="w-20 h-10 bg-[#F7F3F0] rounded-lg animate-pulse"></div>
+            ) : session ? (
+              <div className="flex items-center space-x-3">
+                {/* Add Item Button */}
+                <Link href="/items/add" className="btn-primary text-sm">
+                  <Plus className="w-4 h-4" />
+                  Add Item
+                </Link>
 
-            {/* Add Item Button (Disabled) */}
-            <button
-              className="text-[#6B5B5B] border border-[#E8E2DD] px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed opacity-60"
-              disabled
-            >
-              <Plus className="w-4 h-4 inline mr-2" />
-              Add Item
-            </button>
+                {/* User Info & Logout */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-[#6B5B5B]">
+                    {session.user?.name || session.user?.email}
+                  </span>
+                  <button
+                    onClick={handleSignOut}
+                    className="text-[#6B5B5B] border border-[#E8E2DD] px-3 py-2 rounded-lg text-sm font-medium hover:bg-[#F7F3F0] transition-smooth"
+                  >
+                    <LogOut className="w-4 h-4 inline mr-1" />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Link href="/login" className="btn-primary text-sm">
+                <User className="w-4 h-4" />
+                Login
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -108,18 +138,32 @@ export default function Navbar() {
                 ))}
 
                 <div className="pt-3 border-t border-[#E8E2DD] space-y-2">
-                  <button className="btn-primary w-full text-sm">
-                    <User className="w-4 h-4" />
-                    Login
-                  </button>
-
-                  <button
-                    className="w-full text-[#6B5B5B] border border-[#E8E2DD] px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed opacity-60"
-                    disabled
-                  >
-                    <Plus className="w-4 h-4 inline mr-2" />
-                    Add Item
-                  </button>
+                  {session ? (
+                    <>
+                      <div className="px-3 py-2 text-sm text-[#6B5B5B]">
+                        {session.user?.name || session.user?.email}
+                      </div>
+                      <Link
+                        href="/items/add"
+                        className="btn-primary w-full text-sm"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Item
+                      </Link>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full text-[#6B5B5B] border border-[#E8E2DD] px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#F7F3F0] transition-smooth"
+                      >
+                        <LogOut className="w-4 h-4 inline mr-2" />
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <Link href="/login" className="btn-primary w-full text-sm">
+                      <User className="w-4 h-4" />
+                      Login
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
