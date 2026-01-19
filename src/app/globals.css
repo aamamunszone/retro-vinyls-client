@@ -258,6 +258,28 @@ h6 {
   transform: translateY(-1px);
 }
 
+.btn-disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  font-weight: 500;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: not-allowed;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  opacity: 0.6;
+}
+
 /* Swiper Customization */
 .swiper-pagination-bullet {
   width: 8px !important;

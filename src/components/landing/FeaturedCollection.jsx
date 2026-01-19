@@ -2,6 +2,7 @@
 
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function FeaturedCollection() {
   const featuredItems = [
@@ -160,7 +161,9 @@ export default function FeaturedCollection() {
 
         {/* CTA */}
         <div className="text-center">
-          <button className="btn-secondary">View Complete Collection</button>
+          <Link href="/items" className="btn-secondary">
+            View Complete Collection
+          </Link>
         </div>
       </div>
     </section>

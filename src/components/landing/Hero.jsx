@@ -5,6 +5,7 @@ import { ArrowRight, Play } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay, EffectFade } from 'swiper/modules';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -122,10 +123,13 @@ export default function Hero() {
 
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <button className="btn-primary bg-[#B08968] hover:bg-[#9A7B5F] px-8 py-4 text-lg">
+                  <Link
+                    href="/items"
+                    className="btn-primary bg-[#B08968] hover:bg-[#9A7B5F] px-8 py-4 text-lg"
+                  >
                     {slide.cta}
                     <ArrowRight className="w-5 h-5" />
-                  </button>
+                  </Link>
 
                   <button className="btn-secondary border-white text-white hover:bg-white hover:text-[#3C2F2F] px-8 py-4 text-lg">
                     <Play className="w-5 h-5" />
