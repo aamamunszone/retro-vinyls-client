@@ -2,10 +2,21 @@ import { Star, Heart, ShoppingCart, Eye } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 // Server Component - fetch data on the server
 async function getItems() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/items`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    // Handle missing environment variable during build
+    if (!apiUrl) {
+      console.warn('NEXT_PUBLIC_API_URL is not defined');
+      return { success: false, error: 'API URL not configured' };
+    }
+
+    const res = await fetch(`${apiUrl}/api/items`, {
       cache: 'no-store', // Always fetch fresh data
     });
 

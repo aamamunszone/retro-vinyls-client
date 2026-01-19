@@ -11,15 +11,23 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 // Server Component - fetch single item data
 async function getItem(id) {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/items/${id}`,
-      {
-        cache: 'no-store', // Always fetch fresh data
-      },
-    );
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    // Handle missing environment variable during build
+    if (!apiUrl) {
+      console.warn('NEXT_PUBLIC_API_URL is not defined');
+      return null;
+    }
+
+    const res = await fetch(`${apiUrl}/api/items/${id}`, {
+      cache: 'no-store', // Always fetch fresh data
+    });
 
     if (!res.ok) {
       if (res.status === 404) {

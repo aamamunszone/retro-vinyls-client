@@ -90,16 +90,20 @@ export default function AddItemPage() {
         rating: parseFloat(formData.rating),
       };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/items`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(itemData),
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+      if (!apiUrl) {
+        toast.error('API configuration error');
+        return;
+      }
+
+      const response = await fetch(`${apiUrl}/api/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(itemData),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
