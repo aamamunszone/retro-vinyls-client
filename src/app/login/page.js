@@ -1,32 +1,13 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn, getSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Disc3, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
-// Loading component for Suspense fallback
-function LoginLoading() {
-  return (
-    <div className="min-h-screen bg-[#FFFBEB] flex items-center justify-center">
-      <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-lg shadow-elegant border border-[#E8E2DD] p-8">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-[#E8E2DD] rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-              <Disc3 className="w-8 h-8 text-[#6B5B5B]" />
-            </div>
-            <p className="text-body text-[#6B5B5B]">Loading...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Main login component that uses useSearchParams
-function LoginForm() {
+export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -35,19 +16,17 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   // Check if user is already logged in
   useEffect(() => {
     const checkSession = async () => {
       const session = await getSession();
       if (session) {
-        router.push(callbackUrl);
+        router.push('/');
       }
     };
     checkSession();
-  }, [router, callbackUrl]);
+  }, [router]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -224,14 +203,5 @@ function LoginForm() {
         </div>
       </div>
     </div>
-  );
-}
-
-// Main component with Suspense boundary
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<LoginLoading />}>
-      <LoginForm />
-    </Suspense>
   );
 }

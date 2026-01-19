@@ -2,9 +2,6 @@ import { Star, Heart, ShoppingCart, Eye } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-// Force dynamic rendering for this page
-export const dynamic = 'force-dynamic';
-
 // Server Component - fetch data on the server
 async function getItems() {
   try {
