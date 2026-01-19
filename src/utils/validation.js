@@ -25,7 +25,10 @@ export const validateVinylForm = (formData) => {
   };
 
   Object.entries(requiredFields).forEach(([field, message]) => {
-    if (!formData[field] || formData[field].toString().trim() === '') {
+    if (
+      !formData[field] ||
+      (typeof formData[field] === 'string' && !formData[field].trim())
+    ) {
       errors[field] = message;
     }
   });
@@ -34,9 +37,9 @@ export const validateVinylForm = (formData) => {
   if (formData.price) {
     const price = parseFloat(formData.price);
     if (isNaN(price) || price < FORM_CONFIG.VINYL.MIN_PRICE) {
-      errors.price = `Price must be at least $${FORM_CONFIG.VINYL.MIN_PRICE}`;
+      errors.price = `Price must be at least ${FORM_CONFIG.VINYL.MIN_PRICE}`;
     } else if (price > FORM_CONFIG.VINYL.MAX_PRICE) {
-      errors.price = `Price cannot exceed $${FORM_CONFIG.VINYL.MAX_PRICE}`;
+      errors.price = `Price cannot exceed ${FORM_CONFIG.VINYL.MAX_PRICE}`;
     }
   }
 
@@ -44,9 +47,9 @@ export const validateVinylForm = (formData) => {
   if (formData.originalPrice && formData.originalPrice.trim() !== '') {
     const originalPrice = parseFloat(formData.originalPrice);
     if (isNaN(originalPrice) || originalPrice < FORM_CONFIG.VINYL.MIN_PRICE) {
-      errors.originalPrice = `Original price must be at least $${FORM_CONFIG.VINYL.MIN_PRICE}`;
+      errors.originalPrice = `Original price must be at least ${FORM_CONFIG.VINYL.MIN_PRICE}`;
     } else if (originalPrice > FORM_CONFIG.VINYL.MAX_PRICE) {
-      errors.originalPrice = `Original price cannot exceed $${FORM_CONFIG.VINYL.MAX_PRICE}`;
+      errors.originalPrice = `Original price cannot exceed ${FORM_CONFIG.VINYL.MAX_PRICE}`;
     }
   }
 

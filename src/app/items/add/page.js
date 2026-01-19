@@ -148,9 +148,15 @@ export default function AddItemPage() {
 
       // Client-side validation
       const validation = validateVinylForm(formData);
+
       if (!validation.isValid) {
         setErrors(validation.errors);
-        toast.error('Please fix the validation errors below');
+
+        // Create a more specific error message
+        const errorFields = Object.keys(validation.errors);
+        const errorMessage = `Please fix the following fields: ${errorFields.join(', ')}`;
+
+        toast.error(errorMessage);
         setIsSubmitting(false);
         return;
       }
@@ -291,6 +297,27 @@ export default function AddItemPage() {
 
         {/* Form */}
         <div className="bg-white rounded-lg shadow-elegant border border-[#E8E2DD] p-8">
+          {/* Show validation errors summary if any */}
+          {Object.keys(errors).length > 0 && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <h3 className="text-sm font-semibold text-red-800">
+                  Please fix the following errors:
+                </h3>
+              </div>
+              <ul className="text-sm text-red-700 space-y-1">
+                {Object.entries(errors).map(([field, message]) => (
+                  <li key={field} className="flex items-center space-x-2">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    <span className="capitalize">{field}:</span>
+                    <span>{message}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information */}
             <div>
@@ -398,6 +425,9 @@ export default function AddItemPage() {
                   name="price"
                   type="number"
                   required
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  error={errors.price}
                   min="0"
                   step="0.01"
                   placeholder="189.99"
@@ -407,6 +437,9 @@ export default function AddItemPage() {
                   label="Original Price ($)"
                   name="originalPrice"
                   type="number"
+                  value={formData.originalPrice}
+                  onChange={handleInputChange}
+                  error={errors.originalPrice}
                   min="0"
                   step="0.01"
                   placeholder="240.00"
@@ -471,6 +504,9 @@ export default function AddItemPage() {
                   label="Rating (1-5)"
                   name="rating"
                   type="number"
+                  value={formData.rating}
+                  onChange={handleInputChange}
+                  error={errors.rating}
                   min="1"
                   max="5"
                   step="0.1"
