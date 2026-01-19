@@ -16,19 +16,36 @@ async function getItems() {
       return { success: false, error: 'API URL not configured' };
     }
 
+    console.log('Fetching from:', `${apiUrl}/api/items`);
+
     const res = await fetch(`${apiUrl}/api/items`, {
       cache: 'no-store', // Always fetch fresh data
+      next: { revalidate: 0 }, // Ensure no caching in Vercel
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
     });
 
+    console.log('Response status:', res.status);
+    console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+
     if (!res.ok) {
-      throw new Error('Failed to fetch items');
+      const errorText = await res.text();
+      console.error('Fetch error response:', errorText);
+      throw new Error(`HTTP ${res.status}: ${res.statusText} - ${errorText}`);
     }
 
     const data = await res.json();
+    console.log('Fetched data:', data);
     return data;
   } catch (error) {
     console.error('Error fetching items:', error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: `Failed to fetch items: ${error.message}`,
+      details: error.toString(),
+    };
   }
 }
 
@@ -44,10 +61,28 @@ export default async function ItemsPage() {
             <h1 className="heading-secondary text-[#3C2F2F] mb-4">
               Unable to Load Items
             </h1>
-            <p className="text-body text-[#6B5B5B] mb-8">
-              {result.error ||
-                'Something went wrong while fetching the vinyl records.'}
-            </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
+              <p className="text-body text-red-700 mb-4 font-medium">
+                Error Details:
+              </p>
+              <p className="text-small text-red-600 mb-2">
+                {result.error ||
+                  'Something went wrong while fetching the vinyl records.'}
+              </p>
+              {result.details && (
+                <details className="text-xs text-red-500 mt-2">
+                  <summary className="cursor-pointer font-medium">
+                    Technical Details
+                  </summary>
+                  <pre className="mt-2 p-2 bg-red-100 rounded text-left overflow-auto">
+                    {result.details}
+                  </pre>
+                </details>
+              )}
+              <p className="text-xs text-red-500 mt-4">
+                API URL: {process.env.NEXT_PUBLIC_API_URL || 'Not configured'}
+              </p>
+            </div>
             <Link href="/" className="btn-primary">
               Return Home
             </Link>

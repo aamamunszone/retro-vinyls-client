@@ -27,6 +27,11 @@ async function getItem(id) {
 
     const res = await fetch(`${apiUrl}/api/items/${id}`, {
       cache: 'no-store', // Always fetch fresh data
+      next: { revalidate: 0 }, // Ensure no caching in Vercel
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
     });
 
     if (!res.ok) {

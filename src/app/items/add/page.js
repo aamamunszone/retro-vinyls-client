@@ -101,8 +101,10 @@ export default function AddItemPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(itemData),
+        cache: 'no-store',
       });
 
       if (!response.ok) {
