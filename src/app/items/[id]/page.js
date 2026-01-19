@@ -20,17 +20,6 @@ import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { SkeletonDetailsPage } from '@/components/ui/SkeletonLoader';
 
-// Metadata for SEO
-export const metadata = {
-  title: 'Vinyl Record Details | RetroVinyls',
-  description:
-    'View detailed information about this vintage vinyl record including condition, pricing, specifications, and authenticity details.',
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
-
 export default function ItemDetailsPage() {
   const params = useParams();
   const [item, setItem] = useState(null);
