@@ -18,6 +18,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { SkeletonDetailsPage } from '@/components/ui/SkeletonLoader';
 
 export default function ItemDetailsPage() {
   const params = useParams();
@@ -107,21 +108,23 @@ export default function ItemDetailsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FFFBEB]">
+        {/* Back Navigation Skeleton */}
         <div className="pt-24 pb-8 bg-[#F7F3F0]">
           <div className="max-w-7xl mx-auto container-padding">
-            <Link
-              href="/items"
-              className="inline-flex items-center space-x-2 text-[#6B5B5B] hover:text-[#B08968] hover:bg-stone-100 px-4 py-2 rounded-lg border border-stone-300 transition-all duration-200 group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
-              <span className="text-sm font-medium">Back to Collection</span>
-            </Link>
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-stone-300">
+              <div className="w-4 h-4 bg-stone-200 rounded animate-shimmer"></div>
+              <div className="w-28 h-4 bg-stone-200 rounded animate-shimmer"></div>
+            </div>
           </div>
         </div>
 
+        {/* Premium Details Page Skeleton */}
         <div className="section-padding">
           <div className="max-w-7xl mx-auto container-padding">
-            <div className="flex items-center justify-center py-20">
+            <SkeletonDetailsPage />
+
+            {/* Loading Indicator */}
+            <div className="flex items-center justify-center mt-8">
               <LoadingSpinner size="lg" />
               <span className="ml-4 text-lg text-[#6B5B5B]">
                 Loading vinyl details...
@@ -373,7 +376,7 @@ export default function ItemDetailsPage() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-[#B08968] to-[#9A7B5F] p-8 rounded-2xl text-white shadow-xl">
+              <div className="bg-linear-to-br from-[#B08968] to-[#9A7B5F] p-8 rounded-2xl text-white shadow-xl">
                 <h3 className="font-serif text-2xl font-bold mb-4">
                   Ready to Own This Piece of History?
                 </h3>

@@ -496,3 +496,93 @@ a:focus {
     transform: none;
   }
 }
+/* Premium Skeleton Loader Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Enhanced skeleton styles for retro-modern aesthetic */
+.skeleton-retro {
+  background: linear-gradient(90deg, #f7f3f0 25%, #e8e2dd 50%, #f7f3f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Skeleton variants for different content types */
+.skeleton-text {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-image {
+  background: linear-gradient(135deg, #f7f3f0 25%, #e8e2dd 50%, #f7f3f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2.2s ease-in-out infinite;
+}
+
+.skeleton-card {
+  background: linear-gradient(
+    90deg,
+    rgba(247, 243, 240, 0.8) 25%,
+    rgba(232, 226, 221, 0.8) 50%,
+    rgba(247, 243, 240, 0.8) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Skeleton loading states with staggered animations */
+.skeleton-stagger-1 {
+  animation-delay: 0.1s;
+}
+.skeleton-stagger-2 {
+  animation-delay: 0.2s;
+}
+.skeleton-stagger-3 {
+  animation-delay: 0.3s;
+}
+.skeleton-stagger-4 {
+  animation-delay: 0.4s;
+}
+.skeleton-stagger-5 {
+  animation-delay: 0.5s;
+}
+.skeleton-stagger-6 {
+  animation-delay: 0.6s;
+}
+
+/* Smooth transitions for skeleton to content */
+.skeleton-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.skeleton-fade-out {
+  animation: fadeOut 0.3s ease-in;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Responsive skeleton adjustments */
+@media (max-width: 640px) {
+  .animate-shimmer {
+    animation-duration: 1.5s;
+  }
+}

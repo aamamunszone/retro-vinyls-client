@@ -11,6 +11,7 @@ import { GENRE_OPTIONS, CONDITION_OPTIONS } from '@/utils/constants';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Button from '@/components/ui/Button';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import { SkeletonForm } from '@/components/ui/SkeletonLoader';
 
 // Stable FormField component outside of main component to prevent re-creation
 const FormField = ({
@@ -106,10 +107,35 @@ export default function AddItemPage() {
   // Enhanced Authentication Check with Better UX
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-[#6B5B5B]">Verifying authentication...</p>
+      <div className="min-h-screen bg-[#FFFBEB]">
+        {/* Header Section Skeleton */}
+        <div className="pt-24 pb-8">
+          <div className="max-w-4xl mx-auto container-padding">
+            {/* Back Button Skeleton */}
+            <div className="mb-8">
+              <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-stone-300">
+                <div className="w-4 h-4 bg-stone-200 rounded animate-shimmer"></div>
+                <div className="w-28 h-4 bg-stone-200 rounded animate-shimmer"></div>
+              </div>
+            </div>
+
+            {/* Title Section Skeleton */}
+            <div className="text-center mb-8">
+              <div className="w-48 h-8 bg-stone-200 rounded mx-auto mb-4 animate-shimmer"></div>
+              <div className="w-96 h-4 bg-stone-200 rounded mx-auto animate-shimmer"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Premium Form Skeleton */}
+        <div className="max-w-4xl mx-auto container-padding">
+          <SkeletonForm />
+
+          {/* Loading Indicator */}
+          <div className="flex items-center justify-center mt-8">
+            <LoadingSpinner size="lg" />
+            <span className="ml-4 text-lg text-[#6B5B5B]">Loading form...</span>
+          </div>
         </div>
       </div>
     );

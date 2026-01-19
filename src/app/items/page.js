@@ -21,7 +21,10 @@ import EmptyState from '@/components/ui/EmptyState';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import SkeletonCard from '@/components/ui/SkeletonCard';
+import {
+  SkeletonCard,
+  SkeletonControlBar,
+} from '@/components/ui/SkeletonLoader';
 
 // Genre options for filtering
 const GENRE_FILTERS = [
@@ -171,19 +174,20 @@ export default function ItemsPage() {
     return (
       <div className="min-h-screen bg-[#FFFBEB]">
         {/* Header Section */}
-        <div className="pt-24 pb-12 bg-[#F7F3F0]">
+        <div className="pt-24 pb-8 bg-[#F7F3F0]">
           <div className="max-w-7xl mx-auto container-padding">
-            <div className="text-center">
-              <span className="text-small text-[#B08968] font-medium tracking-wide uppercase mb-4 block">
-                Our Collection
-              </span>
-              <h1 className="heading-primary text-[#3C2F2F] mb-6">
-                Vinyl Records
-              </h1>
-              <p className="text-body max-w-2xl mx-auto mb-8">
-                Discover our carefully curated collection of vintage vinyl
-                records.
-              </p>
+            {/* Back Button Skeleton */}
+            <div className="mb-6">
+              <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-stone-300">
+                <div className="w-4 h-4 bg-stone-200 rounded animate-shimmer"></div>
+                <div className="w-20 h-4 bg-stone-200 rounded animate-shimmer"></div>
+              </div>
+            </div>
+
+            <div className="text-center mb-8">
+              <div className="w-32 h-4 bg-stone-200 rounded mx-auto mb-4 animate-shimmer"></div>
+              <div className="w-48 h-8 bg-stone-200 rounded mx-auto mb-6 animate-shimmer"></div>
+              <div className="w-96 h-4 bg-stone-200 rounded mx-auto mb-8 animate-shimmer"></div>
               <div className="flex items-center justify-center space-x-2">
                 <LoadingSpinner size="sm" />
                 <span className="text-small text-[#6B5B5B]">
@@ -191,15 +195,21 @@ export default function ItemsPage() {
                 </span>
               </div>
             </div>
+
+            {/* Premium Control Bar Skeleton */}
+            <SkeletonControlBar />
           </div>
         </div>
 
-        {/* Loading Skeleton */}
+        {/* Premium Loading Skeleton Grid */}
         <div className="section-padding">
           <div className="max-w-7xl mx-auto container-padding">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {Array.from({ length: 8 }).map((_, index) => (
-                <SkeletonCard key={index} />
+                <SkeletonCard
+                  key={index}
+                  className={`skeleton-stagger-${(index % 6) + 1}`}
+                />
               ))}
             </div>
           </div>
@@ -462,7 +472,7 @@ export default function ItemsPage() {
                     />
 
                     {/* Overlay Actions */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4">
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4">
                       <div className="flex space-x-3">
                         <button className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 hover:scale-110 transition-all duration-200">
                           <Heart className="w-4 h-4 text-white" />
