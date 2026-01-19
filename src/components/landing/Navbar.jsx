@@ -1,7 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Menu, X, Disc3, User, Plus, LogOut } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  Menu,
+  X,
+  Disc3,
+  User,
+  Plus,
+  LogOut,
+  ChevronDown,
+  Mail,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
@@ -10,28 +19,63 @@ import toast from 'react-hot-toast';
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const profileRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
 
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const toggleProfile = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
+
+  const handleSmoothScroll = (e, href) => {
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
+    }
+  };
+
   const handleSignOut = async () => {
+    setIsLoggingOut(true);
+    setIsProfileOpen(false);
     try {
       await signOut({ callbackUrl: '/' });
       toast.success('Logged out successfully');
     } catch (error) {
       toast.error('Error logging out');
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -76,6 +120,7 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
+                onClick={(e) => handleSmoothScroll(e, link.href)}
                 className={`relative font-medium text-sm tracking-wide transition-smooth group ${
                   isActiveLink(link.href)
                     ? 'text-[#B08968]'
@@ -93,11 +138,14 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Authentication Buttons */}
+            {/* Authentication Section */}
             {status === 'loading' ? (
-              <div className="w-20 h-10 bg-[#F7F3F0] rounded-lg animate-pulse" />
-            ) : session ? (
               <div className="flex items-center space-x-3">
+                <div className="w-20 h-10 bg-[#F7F3F0] rounded-lg animate-pulse" />
+                <div className="w-16 h-10 bg-[#F7F3F0] rounded-lg animate-pulse" />
+              </div>
+            ) : session ? (
+              <div className="flex items-center space-x-4">
                 {/* Add Item Button */}
                 <Link
                   href="/items/add"
@@ -109,18 +157,76 @@ export default function Navbar() {
                   <span>Add Item</span>
                 </Link>
 
-                {/* User Info & Logout */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-[#6B5B5B] max-w-32 truncate">
-                    {session.user?.name || session.user?.email}
-                  </span>
+                {/* Profile Dropdown */}
+                <div className="relative" ref={profileRef}>
                   <button
-                    onClick={handleSignOut}
-                    className="text-[#6B5B5B] border border-[#E8E2DD] px-3 py-2 rounded-lg text-sm font-medium hover:bg-[#F7F3F0] transition-smooth flex items-center space-x-1"
+                    onClick={toggleProfile}
+                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-[#F7F3F0] transition-smooth"
                   >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
+                    <div className="w-8 h-8 bg-[#B08968] rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-[#6B5B5B] transition-transform duration-200 ${
+                        isProfileOpen ? 'rotate-180' : ''
+                      }`}
+                    />
                   </button>
+
+                  {/* Dropdown Menu */}
+                  {isProfileOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-64 bg-white/95 backdrop-blur-md border border-[#E8E2DD] rounded-lg shadow-elegant z-50">
+                      <div className="p-4 border-b border-[#E8E2DD]">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-[#B08968] rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-[#3C2F2F]">
+                              {session.user?.name || 'User'}
+                            </p>
+                            <p className="text-xs text-[#6B5B5B] flex items-center">
+                              <Mail className="w-3 h-3 mr-1" />
+                              {session.user?.email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-2">
+                        <Link
+                          href="/items/add"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center space-x-3 w-full px-3 py-2 text-sm text-[#3C2F2F] hover:bg-[#F7F3F0] rounded-lg transition-smooth"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Add New Record</span>
+                        </Link>
+
+                        <button
+                          onClick={handleSignOut}
+                          disabled={isLoggingOut}
+                          className={`flex items-center space-x-3 w-full px-3 py-2 text-sm rounded-lg transition-smooth ${
+                            isLoggingOut
+                              ? 'text-[#6B5B5B] cursor-not-allowed'
+                              : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                          }`}
+                        >
+                          {isLoggingOut ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                              <span>Logging out...</span>
+                            </>
+                          ) : (
+                            <>
+                              <LogOut className="w-4 h-4" />
+                              <span>Logout</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -159,22 +265,42 @@ export default function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
+                    onClick={(e) => {
+                      handleSmoothScroll(e, link.href);
+                      toggleMenu();
+                    }}
                     className={`block px-3 py-2 font-medium rounded-lg transition-smooth ${
                       isActiveLink(link.href)
                         ? 'text-[#B08968] bg-[#F7F3F0]'
                         : 'text-[#3C2F2F] hover:text-[#B08968] hover:bg-[#F7F3F0]'
                     }`}
-                    onClick={toggleMenu}
                   >
                     {link.name}
                   </Link>
                 ))}
 
                 <div className="pt-3 border-t border-[#E8E2DD] space-y-2">
-                  {session ? (
+                  {status === 'loading' ? (
+                    <div className="space-y-2">
+                      <div className="w-full h-10 bg-[#F7F3F0] rounded-lg animate-pulse" />
+                      <div className="w-full h-10 bg-[#F7F3F0] rounded-lg animate-pulse" />
+                    </div>
+                  ) : session ? (
                     <>
-                      <div className="px-3 py-2 text-sm text-[#6B5B5B] truncate">
-                        {session.user?.name || session.user?.email}
+                      <div className="px-3 py-3 bg-[#F7F3F0] rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-[#B08968] rounded-full flex items-center justify-center">
+                            <User className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-[#3C2F2F]">
+                              {session.user?.name || 'User'}
+                            </p>
+                            <p className="text-xs text-[#6B5B5B]">
+                              {session.user?.email}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                       <Link
                         href="/items/add"
@@ -184,17 +310,31 @@ export default function Navbar() {
                         onClick={toggleMenu}
                       >
                         <Plus className="w-4 h-4" />
-                        <span>Add Item</span>
+                        <span>Add New Record</span>
                       </Link>
                       <button
                         onClick={() => {
                           handleSignOut();
                           toggleMenu();
                         }}
-                        className="w-full text-[#6B5B5B] border border-[#E8E2DD] px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#F7F3F0] transition-smooth flex items-center justify-center space-x-2"
+                        disabled={isLoggingOut}
+                        className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-smooth flex items-center justify-center space-x-2 ${
+                          isLoggingOut
+                            ? 'bg-[#F7F3F0] text-[#6B5B5B] cursor-not-allowed border border-[#E8E2DD]'
+                            : 'text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300'
+                        }`}
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
+                        {isLoggingOut ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-[#6B5B5B] border-t-transparent rounded-full animate-spin" />
+                            <span>Logging out...</span>
+                          </>
+                        ) : (
+                          <>
+                            <LogOut className="w-4 h-4" />
+                            <span>Logout</span>
+                          </>
+                        )}
                       </button>
                     </>
                   ) : (

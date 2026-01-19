@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { validateVinylForm, formatVinylData } from '@/utils/validation';
 import { itemsApi } from '@/utils/api';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import ScrollToTop from '@/components/ui/ScrollToTop';
 
 export default function AddItemPage() {
   const { data: session, status } = useSession();
@@ -93,7 +94,9 @@ export default function AddItemPage() {
       // Submit using centralized API utility
       const result = await itemsApi.create(itemData);
 
-      toast.success('Vinyl record added successfully!');
+      toast.success(
+        '🎵 Vinyl record added successfully! Redirecting to collection...',
+      );
 
       // Reset form
       setFormData({
@@ -110,7 +113,7 @@ export default function AddItemPage() {
         inStock: true,
       });
 
-      // Redirect to the items list
+      // Redirect to the items collection page to see the newly added item
       setTimeout(() => {
         router.push('/items');
       }, 1500);
@@ -435,6 +438,7 @@ export default function AddItemPage() {
           </form>
         </div>
       </div>
+      <ScrollToTop />
     </div>
   );
 }

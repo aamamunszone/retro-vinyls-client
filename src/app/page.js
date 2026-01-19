@@ -7,6 +7,7 @@ import ArtisanChoice from '@/components/landing/ArtisanChoice';
 import Testimonials from '@/components/landing/Testimonials';
 import JoinCommunity from '@/components/landing/JoinCommunity';
 import Footer from '@/components/landing/Footer';
+import ScrollToTop from '@/components/ui/ScrollToTop';
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
         <JoinCommunity />
       </main>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

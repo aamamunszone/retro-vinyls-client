@@ -38,7 +38,10 @@ export default function JoinCommunity() {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-[#CC5500] via-[#D4AF37] to-[#CC5500] relative overflow-hidden">
+    <section
+      id="contact"
+      className="py-20 bg-gradient-to-br from-[#CC5500] via-[#D4AF37] to-[#CC5500] relative overflow-hidden"
+    >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div

@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Disc3, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import ScrollToTop from '@/components/ui/ScrollToTop';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -51,11 +53,10 @@ export default function LoginPage() {
         toast.error('Invalid credentials. Please try again.');
       } else if (result?.ok) {
         toast.success('Login successful! Welcome back.');
-        // Manual redirect for better stability in serverless
-        router.push('/items/add');
+        // Redirect to home page for better user experience
+        router.push('/');
       }
     } catch (error) {
-      console.error('Login error:', error);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
@@ -181,13 +182,20 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 px-4 rounded-lg font-medium transition-smooth ${
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-smooth flex items-center justify-center space-x-2 ${
                 isLoading
                   ? 'bg-[#E8E2DD] text-[#6B5B5B] cursor-not-allowed'
-                  : 'btn-primary'
+                  : 'btn-primary hover:bg-[#9A7B5F]'
               }`}
             >
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner size="sm" inline />
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <span>Sign In</span>
+              )}
             </button>
           </form>
 
@@ -202,6 +210,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      <ScrollToTop />
     </div>
   );
 }

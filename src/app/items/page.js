@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { itemsApi } from '@/utils/api';
 import ErrorState from '@/components/ui/ErrorState';
 import EmptyState from '@/components/ui/EmptyState';
+import ScrollToTop from '@/components/ui/ScrollToTop';
 
 // Server Component - fetch data using centralized API utilities
 async function getItems() {
@@ -182,6 +183,7 @@ export default async function ItemsPage() {
           )}
         </div>
       </div>
+      <ScrollToTop />
     </div>
   );
 }
