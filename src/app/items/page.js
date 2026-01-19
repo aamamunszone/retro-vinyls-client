@@ -1,18 +1,18 @@
 import { Star, Heart, ShoppingCart, Eye } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { itemsApi } from '@/utils/api';
 import ErrorState from '@/components/ui/ErrorState';
 import EmptyState from '@/components/ui/EmptyState';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import Button from '@/components/ui/Button';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-// Server Component - fetch data with robust error handling
+// Server Component - fetch data with maximum compatibility
 async function getItems() {
+  // Always return safe fallback for now to prevent server crashes
   try {
-    // Ensure API URL is available with fallback
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     if (!apiUrl) {
@@ -27,20 +27,26 @@ async function getItems() {
 
     console.log('Fetching items from:', `${apiUrl}/api/items`);
 
+    // Simple fetch without timeout for maximum compatibility
     const res = await fetch(`${apiUrl}/api/items`, {
       cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      // Add timeout for Vercel
-      signal: AbortSignal.timeout(10000),
     });
 
     if (!res.ok) {
-      const errorText = await res.text();
+      const errorText = await res.text().catch(() => 'Unknown error');
       console.error('API Error:', res.status, res.statusText, errorText);
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+      // Return safe fallback instead of throwing
+      return {
+        success: false,
+        error: `HTTP ${res.status}: ${res.statusText}`,
+        data: [],
+        count: 0,
+      };
     }
 
     const result = await res.json();
@@ -54,10 +60,10 @@ async function getItems() {
   } catch (error) {
     console.error('Error fetching items:', error.message);
 
-    // Return safe fallback instead of crashing
+    // Always return safe fallback - never throw
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'Unknown error occurred',
       data: [],
       count: 0,
     };

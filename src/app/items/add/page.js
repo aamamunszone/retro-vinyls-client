@@ -155,6 +155,10 @@ export default function AddItemPage() {
       console.log('Submitting item to:', `${apiUrl}/api/items`);
       console.log('Item data:', itemData);
 
+      // Create timeout controller manually for better compatibility
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const res = await fetch(`${apiUrl}/api/items`, {
         method: 'POST',
         headers: {
@@ -162,9 +166,10 @@ export default function AddItemPage() {
           Accept: 'application/json',
         },
         body: JSON.stringify(itemData),
-        // Add timeout for Vercel
-        signal: AbortSignal.timeout(15000),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       console.log('Response status:', res.status);
 

@@ -28,15 +28,20 @@ async function getItem(id) {
 
     console.log('Fetching item from:', `${apiUrl}/api/items/${id}`);
 
+    // Create timeout controller manually for better compatibility
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const res = await fetch(`${apiUrl}/api/items/${id}`, {
       cache: 'no-store', // Always fetch fresh data
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      // Add timeout for Vercel
-      signal: AbortSignal.timeout(10000),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       if (res.status === 404) {

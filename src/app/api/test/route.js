@@ -20,14 +20,19 @@ export async function GET() {
 
     console.log('Testing connection to:', `${apiUrl}/health`);
 
+    // Create timeout controller manually for better compatibility
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const res = await fetch(`${apiUrl}/health`, {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      // Add timeout
-      signal: AbortSignal.timeout(10000),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     const data = await res.json();
 
