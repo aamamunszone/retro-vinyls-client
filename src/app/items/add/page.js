@@ -3,11 +3,10 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, Plus, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Upload, Plus, AlertCircle, User } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { validateVinylForm, formatVinylData } from '@/utils/validation';
-import { itemsApi } from '@/utils/api';
 import { GENRE_OPTIONS, CONDITION_OPTIONS } from '@/utils/constants';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Button from '@/components/ui/Button';
@@ -104,24 +103,37 @@ export default function AddItemPage() {
   const conditionOptions = useMemo(() => CONDITION_OPTIONS, []);
   const genreOptions = useMemo(() => GENRE_OPTIONS, []);
 
-  // Authentication check without console.log for production
+  // Enhanced Authentication Check with Better UX
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Checking authentication..." />
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-[#6B5B5B]">Verifying authentication...</p>
+        </div>
       </div>
     );
   }
 
   if (status === 'unauthenticated' || !session?.user?.email) {
-    // Use window.location for hard redirect to ensure proper session handling
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login?callbackUrl=/items/add';
-    }
-
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Redirecting to login..." />
+        <div className="max-w-md mx-auto text-center p-8 bg-white rounded-lg shadow-elegant border border-[#E8E2DD]">
+          <div className="w-16 h-16 bg-[#B08968] rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="heading-tertiary text-[#3C2F2F] mb-4">
+            Authentication Required
+          </h2>
+          <p className="text-body text-[#6B5B5B] mb-6">
+            You need to be logged in to add vinyl records to the collection.
+          </p>
+          <Link href="/login?callbackUrl=/items/add">
+            <Button variant="primary" size="md" fullWidth>
+              Sign In to Continue
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -132,34 +144,41 @@ export default function AddItemPage() {
     setErrors({});
 
     try {
-      // Validate form data
-      const validation = validateVinylForm(formData);
+      console.log('🚀 Starting form submission...');
 
+      // Client-side validation
+      const validation = validateVinylForm(formData);
       if (!validation.isValid) {
         setErrors(validation.errors);
-        toast.error('Please fix the errors below');
+        toast.error('Please fix the validation errors below');
         setIsSubmitting(false);
         return;
       }
 
-      // Format data for API submission
+      // Format data for API
       const itemData = formatVinylData(formData);
+      console.log('📝 Formatted item data:', itemData);
 
-      // Direct API call with better error handling
+      // API Configuration
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
       if (!apiUrl) {
-        throw new Error('API configuration missing');
+        throw new Error(
+          'API configuration is missing. Please check environment variables.',
+        );
       }
 
-      console.log('Submitting item to:', `${apiUrl}/api/items`);
-      console.log('Item data:', itemData);
+      const endpoint = `${apiUrl}/api/items`;
+      console.log('🌐 Submitting to:', endpoint);
 
-      // Create timeout controller manually for better compatibility
+      // Create request with timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        console.error('❌ Request timeout after 20 seconds');
+      }, 20000);
 
-      const res = await fetch(`${apiUrl}/api/items`, {
+      // API Request
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,21 +190,40 @@ export default function AddItemPage() {
 
       clearTimeout(timeoutId);
 
-      console.log('Response status:', res.status);
+      console.log('📡 Response status:', response.status);
+      console.log(
+        '📡 Response headers:',
+        Object.fromEntries(response.headers.entries()),
+      );
 
-      if (!res.ok) {
-        const errorData = await res
-          .json()
-          .catch(() => ({ message: 'Unknown error' }));
-        console.error('API Error Response:', errorData);
+      // Handle response
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          errorData = {
+            message: `HTTP ${response.status}: ${response.statusText}`,
+            details: 'Unable to parse error response',
+          };
+        }
+
+        console.error('❌ API Error Response:', errorData);
         throw new Error(
-          errorData.message || `HTTP ${res.status}: ${res.statusText}`,
+          errorData.message || `Server error: ${response.status}`,
         );
       }
 
-      const result = await res.json();
-      console.log('Item created successfully:', result);
+      const result = await response.json();
+      console.log('✅ Success response:', result);
 
+      if (!result.success) {
+        throw new Error(
+          result.message || 'Server returned unsuccessful response',
+        );
+      }
+
+      // Success handling
       toast.success(
         '🎵 Vinyl record added successfully! Redirecting to collection...',
       );
@@ -205,15 +243,23 @@ export default function AddItemPage() {
         inStock: true,
       });
 
-      // Redirect to the items collection page to see the newly added item
+      // Redirect to collection
       setTimeout(() => {
         router.push('/items');
-      }, 1500);
+      }, 2000);
     } catch (error) {
-      console.error('Submit error:', error);
-      toast.error(
-        error.message || 'Failed to add vinyl record. Please try again.',
-      );
+      console.error('❌ Form submission error:', error);
+
+      let errorMessage = 'Failed to add vinyl record. Please try again.';
+
+      if (error.name === 'AbortError') {
+        errorMessage =
+          'Request timed out. Please check your connection and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

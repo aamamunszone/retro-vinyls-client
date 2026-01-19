@@ -9,14 +9,13 @@ import Button from '@/components/ui/Button';
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-// Server Component - fetch data with maximum compatibility
+// Server Component - Bulletproof data fetching
 async function getItems() {
-  // Always return safe fallback for now to prevent server crashes
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     if (!apiUrl) {
-      console.error('NEXT_PUBLIC_API_URL is not configured');
+      console.error('❌ NEXT_PUBLIC_API_URL is not configured');
       return {
         success: false,
         error: 'API configuration missing',
@@ -25,32 +24,53 @@ async function getItems() {
       };
     }
 
-    console.log('Fetching items from:', `${apiUrl}/api/items`);
+    console.log('🔍 Fetching items from:', `${apiUrl}/api/items`);
 
-    // Simple fetch without timeout for maximum compatibility
-    const res = await fetch(`${apiUrl}/api/items`, {
+    // Enhanced fetch with better error handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    const response = await fetch(`${apiUrl}/api/items`, {
       cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      signal: controller.signal,
     });
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => 'Unknown error');
-      console.error('API Error:', res.status, res.statusText, errorText);
+    clearTimeout(timeoutId);
 
-      // Return safe fallback instead of throwing
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.error(
+        '❌ API Error:',
+        response.status,
+        response.statusText,
+        errorText,
+      );
+
       return {
         success: false,
-        error: `HTTP ${res.status}: ${res.statusText}`,
+        error: `Server error: ${response.status} ${response.statusText}`,
         data: [],
         count: 0,
       };
     }
 
-    const result = await res.json();
-    console.log('Items fetched successfully:', result.count || 0, 'items');
+    const result = await response.json();
+
+    if (!result.success) {
+      console.error('❌ API returned unsuccessful response:', result);
+      return {
+        success: false,
+        error: result.message || 'Failed to fetch items',
+        data: [],
+        count: 0,
+      };
+    }
+
+    console.log(`✅ Successfully fetched ${result.count || 0} items`);
 
     return {
       success: true,
@@ -58,12 +78,18 @@ async function getItems() {
       count: result.count || 0,
     };
   } catch (error) {
-    console.error('Error fetching items:', error.message);
+    console.error('❌ Critical error fetching items:', error);
 
-    // Always return safe fallback - never throw
+    let errorMessage = 'Unknown error occurred';
+    if (error.name === 'AbortError') {
+      errorMessage = 'Request timed out';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
     return {
       success: false,
-      error: error.message || 'Unknown error occurred',
+      error: errorMessage,
       data: [],
       count: 0,
     };
@@ -73,17 +99,19 @@ async function getItems() {
 export default async function ItemsPage() {
   const result = await getItems();
 
-  // Handle error state with professional error component
+  // Professional Error Handling
   if (!result.success) {
-    console.error('Items page error:', result.error);
+    console.error('❌ Items page error:', result.error);
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24">
         <div className="max-w-7xl mx-auto container-padding">
           <ErrorState
             title="Unable to Load Collection"
             message={
-              result.error ||
-              'We encountered an issue loading the vinyl records. Please try again later.'
+              result.error === 'Request timed out'
+                ? 'The request timed out. Please check your connection and try again.'
+                : result.error ||
+                  'We encountered an issue loading the vinyl records. Please try again later.'
             }
             showRetry={false}
             showHomeLink={true}
