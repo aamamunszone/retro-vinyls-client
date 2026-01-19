@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import {
   Star,
   Heart,
@@ -12,67 +15,145 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-
-// Server Component - fetch single item data
-async function getItem(id) {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-    // Handle missing environment variable during build
-    if (!apiUrl) {
-      console.error('NEXT_PUBLIC_API_URL is not defined');
-      return null;
-    }
-
-    console.log('Fetching item from:', `${apiUrl}/api/items/${id}`);
-
-    // Create timeout controller manually for better compatibility
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    const res = await fetch(`${apiUrl}/api/items/${id}`, {
-      cache: 'no-store', // Always fetch fresh data
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      if (res.status === 404) {
-        console.log('Item not found:', id);
-        return null; // Item not found
-      }
-      const errorText = await res.text();
-      console.error('API Error:', res.status, res.statusText, errorText);
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    }
-
-    const result = await res.json();
-    console.log('Item fetched successfully:', result.data?.name);
-    return result.data;
-  } catch (error) {
-    console.error('Error fetching item:', error);
-    throw error;
-  }
-}
-
-export default async function ItemDetailsPage({ params }) {
+export default function ItemDetailsPage({ params }) {
   const { id } = params;
+  const router = useRouter();
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  let item;
-  try {
-    item = await getItem(id);
-  } catch (error) {
+  useEffect(() => {
+    const fetchItem = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (!apiUrl) {
+          throw new Error('API configuration is missing');
+        }
+
+        console.log('Fetching item from:', `${apiUrl}/api/items/${id}`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const response = await fetch(`${apiUrl}/api/items/${id}`, {
+          cache: 'no-store',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            // Item not found - redirect to not-found page
+            router.push('/items/not-found');
+            return;
+          }
+
+          const errorText = await response.text().catch(() => 'Unknown error');
+          throw new Error(
+            `Server error: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to fetch item');
+        }
+
+        setItem(result.data);
+      } catch (err) {
+        console.error('Error fetching item:', err);
+        if (err.name === 'AbortError') {
+          setError('Request timed out. Please try again.');
+        } else {
+          setError(err.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchItem();
+    }
+  }, [id, router]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FFFBEB]">
+        {/* Back Navigation */}
+        <div className="pt-24 pb-8 bg-[#F7F3F0]">
+          <div className="max-w-7xl mx-auto container-padding">
+            <Link
+              href="/items"
+              className="inline-flex items-center space-x-2 text-[#6B5B5B] hover:text-[#B08968] hover:bg-stone-100 px-4 py-2 rounded-lg border border-stone-300 transition-all duration-200 group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
+              <span className="text-sm font-medium">Back to Collection</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Loading Content */}
+        <div className="section-padding">
+          <div className="max-w-7xl mx-auto container-padding">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+              {/* Image Skeleton */}
+              <div className="space-y-6">
+                <div className="aspect-square bg-[#F7F3F0] rounded-2xl animate-pulse"></div>
+                <div className="flex space-x-4">
+                  <div className="flex-1 h-14 bg-[#F7F3F0] rounded-lg animate-pulse"></div>
+                  <div className="w-14 h-14 bg-[#F7F3F0] rounded-xl animate-pulse"></div>
+                </div>
+              </div>
+
+              {/* Content Skeleton */}
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <div className="flex space-x-4">
+                    <div className="w-16 h-8 bg-[#F7F3F0] rounded-full animate-pulse"></div>
+                    <div className="w-20 h-8 bg-[#F7F3F0] rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="w-3/4 h-12 bg-[#F7F3F0] rounded animate-pulse"></div>
+                  <div className="w-1/2 h-8 bg-[#F7F3F0] rounded animate-pulse"></div>
+                  <div className="w-32 h-10 bg-[#F7F3F0] rounded animate-pulse"></div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="w-full h-4 bg-[#F7F3F0] rounded animate-pulse"></div>
+                  <div className="w-5/6 h-4 bg-[#F7F3F0] rounded animate-pulse"></div>
+                  <div className="w-4/5 h-4 bg-[#F7F3F0] rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center mt-8">
+              <LoadingSpinner size="lg" />
+              <span className="ml-3 text-[#6B5B5B]">
+                Loading vinyl details...
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24">
         <div className="max-w-7xl mx-auto container-padding">
@@ -84,8 +165,7 @@ export default async function ItemDetailsPage({ params }) {
               Unable to Load Item
             </h1>
             <p className="text-body text-[#6B5B5B] mb-8 max-w-md mx-auto">
-              Something went wrong while fetching this vinyl record. Please try
-              again later.
+              {error}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/items">
@@ -107,9 +187,27 @@ export default async function ItemDetailsPage({ params }) {
     );
   }
 
-  // If item not found, trigger Next.js 404
+  // Item not found
   if (!item) {
-    notFound();
+    return (
+      <div className="min-h-screen bg-[#FFFBEB] pt-24">
+        <div className="max-w-7xl mx-auto container-padding">
+          <div className="text-center py-20">
+            <h1 className="heading-secondary text-[#3C2F2F] mb-4">
+              Item Not Found
+            </h1>
+            <p className="text-body text-[#6B5B5B] mb-8">
+              The vinyl record you're looking for could not be found.
+            </p>
+            <Link href="/items">
+              <Button variant="primary" size="md">
+                Back to Collection
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -360,50 +458,4 @@ export default async function ItemDetailsPage({ params }) {
       </div>
     </div>
   );
-}
-
-// Generate metadata for SEO
-export async function generateMetadata({ params }) {
-  const { id } = params;
-
-  try {
-    const item = await getItem(id);
-
-    if (!item) {
-      return {
-        title: 'Item Not Found | RetroVinyls',
-        description: 'The requested vinyl record could not be found.',
-      };
-    }
-
-    return {
-      title: `${item.name} by ${item.artist} | RetroVinyls`,
-      description: item.description.substring(0, 160) + '...',
-      keywords: `${item.name}, ${item.artist}, ${item.genre}, vinyl record, ${item.year}`,
-      openGraph: {
-        title: `${item.name} by ${item.artist}`,
-        description: item.description.substring(0, 160) + '...',
-        images: [
-          {
-            url: item.image,
-            width: 800,
-            height: 800,
-            alt: `${item.name} by ${item.artist}`,
-          },
-        ],
-        type: 'product',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: `${item.name} by ${item.artist}`,
-        description: item.description.substring(0, 160) + '...',
-        images: [item.image],
-      },
-    };
-  } catch (error) {
-    return {
-      title: 'Error Loading Item | RetroVinyls',
-      description: 'An error occurred while loading this vinyl record.',
-    };
-  }
 }
