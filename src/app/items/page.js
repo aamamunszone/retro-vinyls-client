@@ -12,6 +12,7 @@ import {
   X,
   Sparkles,
   Music,
+  ArrowLeft,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -232,6 +233,17 @@ export default function ItemsPage() {
       {/* Header Section */}
       <div className="pt-24 pb-8 bg-[#F7F3F0]">
         <div className="max-w-7xl mx-auto container-padding">
+          {/* Back Button */}
+          <div className="mb-6">
+            <Link
+              href="/"
+              className="inline-flex items-center space-x-2 text-[#6B5B5B] hover:text-[#B08968] hover:bg-stone-100 px-4 py-2 rounded-lg border border-stone-300 transition-all duration-200 group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
+              <span className="text-sm font-medium">Back to Home</span>
+            </Link>
+          </div>
+
           <div className="text-center mb-8">
             <span className="text-small text-[#B08968] font-medium tracking-wide uppercase mb-4 block">
               Our Collection

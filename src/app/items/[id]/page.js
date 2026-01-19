@@ -6,11 +6,15 @@ import {
   Clock,
   Award,
   Shield,
+  Music,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Button from '@/components/ui/Button';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -30,7 +34,7 @@ async function getItem(id) {
 
     // Create timeout controller manually for better compatibility
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     const res = await fetch(`${apiUrl}/api/items/${id}`, {
       cache: 'no-store', // Always fetch fresh data
@@ -73,17 +77,30 @@ export default async function ItemDetailsPage({ params }) {
       <div className="min-h-screen bg-[#FFFBEB] pt-24">
         <div className="max-w-7xl mx-auto container-padding">
           <div className="text-center py-20">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
             <h1 className="heading-secondary text-[#3C2F2F] mb-4">
               Unable to Load Item
             </h1>
-            <p className="text-body text-[#6B5B5B] mb-8">
-              Something went wrong while fetching this vinyl record.
+            <p className="text-body text-[#6B5B5B] mb-8 max-w-md mx-auto">
+              Something went wrong while fetching this vinyl record. Please try
+              again later.
             </p>
-            <Link href="/items">
-              <Button variant="primary" size="md">
-                Back to Collection
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/items">
+                <Button variant="primary" size="md">
+                  Back to Collection
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => window.location.reload()}
+              >
+                Try Again
               </Button>
-            </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -97,208 +114,244 @@ export default async function ItemDetailsPage({ params }) {
 
   return (
     <div className="min-h-screen bg-[#FFFBEB]">
-      {/* Back Navigation */}
-      <div className="pt-24 pb-8">
+      {/* Professional Back Navigation */}
+      <div className="pt-24 pb-8 bg-[#F7F3F0]">
         <div className="max-w-7xl mx-auto container-padding">
           <Link
             href="/items"
-            className="inline-flex items-center space-x-2 text-[#6B5B5B] hover:text-[#B08968] transition-smooth"
+            className="inline-flex items-center space-x-2 text-[#6B5B5B] hover:text-[#B08968] hover:bg-stone-100 px-4 py-2 rounded-lg border border-stone-300 transition-all duration-200 group"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-small font-medium">Back to Collection</span>
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
+            <span className="text-sm font-medium">Back to Collection</span>
           </Link>
         </div>
       </div>
 
-      {/* Item Details */}
+      {/* Item Details - Professional 2-Column Layout */}
       <div className="section-padding">
         <div className="max-w-7xl mx-auto container-padding">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-            {/* Image Section */}
+            {/* Left Column - High-Resolution Image */}
             <div className="space-y-6">
-              <div className="relative aspect-square overflow-hidden rounded-lg shadow-elegant">
+              <div className="relative aspect-square overflow-hidden rounded-2xl shadow-2xl border border-[#E8E2DD]">
                 <Image
                   src={item.image}
                   alt={`${item.name} by ${item.artist}`}
                   fill
-                  className="object-cover"
+                  className="object-cover hover:scale-105 transition-transform duration-700"
                   priority
                 />
 
-                {/* Badges */}
-                <div className="absolute top-4 left-4">
-                  <span className="bg-[#B08968] text-white px-3 py-1 rounded-full text-sm font-medium">
-                    {item.condition}
-                  </span>
+                {/* Premium Badges */}
+                <div className="absolute top-6 left-6">
+                  <div className="flex items-center space-x-1 bg-[#B08968] text-white px-3 py-2 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm">
+                    <Award className="w-4 h-4" />
+                    <span>{item.condition}</span>
+                  </div>
                 </div>
 
-                <div className="absolute top-4 right-4">
-                  <span className="bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm">
+                <div className="absolute top-6 right-6">
+                  <span className="bg-black/60 backdrop-blur-md text-white px-3 py-2 rounded-full text-sm font-medium shadow-lg">
                     {item.year}
                   </span>
                 </div>
+
+                {/* Stock Status Badge */}
+                <div className="absolute bottom-6 left-6">
+                  <div
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-medium shadow-lg backdrop-blur-md ${
+                      item.inStock
+                        ? 'bg-green-500/90 text-white'
+                        : 'bg-red-500/90 text-white'
+                    }`}
+                  >
+                    {item.inStock ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4" />
+                    )}
+                    <span>{item.inStock ? 'In Stock' : 'Out of Stock'}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Quick Actions */}
+              {/* Quick Actions - Mobile Optimized */}
               <div className="flex space-x-4">
                 <Button
-                  variant="primary"
-                  size="md"
+                  variant={item.inStock ? 'primary' : 'ghost'}
+                  size="lg"
                   fullWidth
+                  disabled={!item.inStock}
                   icon={ShoppingCart}
                   iconPosition="left"
+                  className="btn-premium"
                 >
-                  Add to Cart
+                  {item.inStock ? 'Add to Cart' : 'Out of Stock'}
                 </Button>
-                <button className="w-12 h-12 border border-[#E8E2DD] rounded-lg flex items-center justify-center hover:bg-[#F7F3F0] transition-smooth">
-                  <Heart className="w-5 h-5 text-[#6B5B5B]" />
+                <button className="w-14 h-14 border-2 border-[#E8E2DD] rounded-xl flex items-center justify-center hover:bg-[#F7F3F0] hover:border-[#B08968] transition-all duration-200 group">
+                  <Heart className="w-6 h-6 text-[#6B5B5B] group-hover:text-[#B08968] transition-colors" />
                 </button>
               </div>
             </div>
 
-            {/* Details Section */}
+            {/* Right Column - Product Information */}
             <div className="space-y-8">
-              {/* Header */}
+              {/* Header Section */}
               <div>
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-5 h-5 text-[#D4A574] fill-current" />
-                    <span className="text-body font-medium text-[#3C2F2F]">
+                {/* Rating & Genre */}
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="flex items-center space-x-1 bg-[#F7F3F0] px-3 py-1.5 rounded-full">
+                    <Star className="w-4 h-4 text-[#D4A574] fill-current" />
+                    <span className="text-sm font-semibold text-[#3C2F2F]">
                       {item.rating}
                     </span>
                   </div>
-                  <span className="text-small text-[#6B5B5B]">•</span>
-                  <span className="bg-[#F7F3F0] px-3 py-1 rounded-full text-small text-[#6B5B5B] font-medium">
-                    {item.genre}
-                  </span>
+                  <div className="flex items-center space-x-1 bg-[#B08968] text-white px-3 py-1.5 rounded-full">
+                    <Music className="w-4 h-4" />
+                    <span className="text-sm font-medium">{item.genre}</span>
+                  </div>
                 </div>
 
-                <h1 className="heading-primary text-[#3C2F2F] mb-2">
+                {/* Title - Large Elegant Serif Typography */}
+                <h1 className="font-serif text-4xl lg:text-5xl font-bold text-[#3C2F2F] mb-4 leading-tight">
                   {item.name}
                 </h1>
 
-                <p className="text-lg text-[#6B5B5B] mb-6">
-                  by{' '}
-                  <span className="font-medium text-[#3C2F2F]">
+                {/* Artist - Subtle Badge Style */}
+                <div className="mb-8">
+                  <span className="text-lg text-[#6B5B5B]">by </span>
+                  <span className="text-xl font-semibold text-[#3C2F2F] bg-[#F7F3F0] px-3 py-1 rounded-lg">
                     {item.artist}
                   </span>
-                </p>
+                </div>
 
-                {/* Price */}
-                <div className="flex items-baseline space-x-4 mb-6">
-                  <div className="font-serif text-3xl font-semibold text-[#B08968]">
+                {/* Price - Prominent and Clear */}
+                <div className="flex items-baseline space-x-4 mb-8">
+                  <div className="font-serif text-4xl font-bold text-[#B08968]">
                     ${item.price}
                   </div>
                   {item.originalPrice && (
-                    <div className="text-lg text-[#6B5B5B] line-through">
-                      ${item.originalPrice}
+                    <div className="flex flex-col">
+                      <div className="text-lg text-[#6B5B5B] line-through">
+                        ${item.originalPrice}
+                      </div>
+                      <div className="text-sm text-green-600 font-medium">
+                        Save ${(item.originalPrice - item.price).toFixed(2)}
+                      </div>
                     </div>
                   )}
                 </div>
-
-                {/* Stock Status */}
-                <div className="flex items-center space-x-2 mb-8">
-                  <div
-                    className={`w-3 h-3 rounded-full ${item.inStock ? 'bg-green-500' : 'bg-red-500'}`}
-                  ></div>
-                  <span
-                    className={`text-small font-medium ${item.inStock ? 'text-green-700' : 'text-red-700'}`}
-                  >
-                    {item.inStock ? 'In Stock' : 'Out of Stock'}
-                  </span>
-                </div>
               </div>
 
-              {/* Description */}
-              <div>
-                <h2 className="heading-tertiary text-[#3C2F2F] mb-4">
+              {/* Description - Clean, Readable Paragraph */}
+              <div className="bg-[#F7F3F0] p-6 rounded-xl">
+                <h2 className="font-serif text-xl font-semibold text-[#3C2F2F] mb-4">
                   About This Record
                 </h2>
-                <p className="text-body text-[#6B5B5B] leading-relaxed">
+                <p className="text-[#6B5B5B] leading-relaxed text-base">
                   {item.description}
                 </p>
               </div>
 
-              {/* Specifications */}
+              {/* Specifications - Small Grid Layout */}
               <div>
-                <h2 className="heading-tertiary text-[#3C2F2F] mb-4">
+                <h2 className="font-serif text-xl font-semibold text-[#3C2F2F] mb-6">
                   Specifications
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-[#F7F3F0] p-4 rounded-lg">
+                  <div className="bg-white border border-[#E8E2DD] p-4 rounded-xl hover:shadow-md transition-shadow">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Clock className="w-4 h-4 text-[#B08968]" />
-                      <span className="text-small font-medium text-[#3C2F2F]">
-                        Year
+                      <Clock className="w-5 h-5 text-[#B08968]" />
+                      <span className="text-sm font-semibold text-[#3C2F2F]">
+                        Release Year
                       </span>
                     </div>
-                    <span className="text-body text-[#6B5B5B]">
+                    <span className="text-lg font-medium text-[#6B5B5B]">
                       {item.year}
                     </span>
                   </div>
 
-                  <div className="bg-[#F7F3F0] p-4 rounded-lg">
+                  <div className="bg-white border border-[#E8E2DD] p-4 rounded-xl hover:shadow-md transition-shadow">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Award className="w-4 h-4 text-[#B08968]" />
-                      <span className="text-small font-medium text-[#3C2F2F]">
+                      <Award className="w-5 h-5 text-[#B08968]" />
+                      <span className="text-sm font-semibold text-[#3C2F2F]">
                         Condition
                       </span>
                     </div>
-                    <span className="text-body text-[#6B5B5B]">
+                    <span className="text-lg font-medium text-[#6B5B5B]">
                       {item.condition}
                     </span>
                   </div>
 
-                  <div className="bg-[#F7F3F0] p-4 rounded-lg">
+                  <div className="bg-white border border-[#E8E2DD] p-4 rounded-xl hover:shadow-md transition-shadow">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Shield className="w-4 h-4 text-[#B08968]" />
-                      <span className="text-small font-medium text-[#3C2F2F]">
+                      <Shield className="w-5 h-5 text-[#B08968]" />
+                      <span className="text-sm font-semibold text-[#3C2F2F]">
                         Genre
                       </span>
                     </div>
-                    <span className="text-body text-[#6B5B5B]">
+                    <span className="text-lg font-medium text-[#6B5B5B]">
                       {item.genre}
                     </span>
                   </div>
 
-                  <div className="bg-[#F7F3F0] p-4 rounded-lg">
+                  <div className="bg-white border border-[#E8E2DD] p-4 rounded-xl hover:shadow-md transition-shadow">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Star className="w-4 h-4 text-[#B08968]" />
-                      <span className="text-small font-medium text-[#3C2F2F]">
+                      <Star className="w-5 h-5 text-[#B08968]" />
+                      <span className="text-sm font-semibold text-[#3C2F2F]">
                         Rating
                       </span>
                     </div>
-                    <span className="text-body text-[#6B5B5B]">
+                    <span className="text-lg font-medium text-[#6B5B5B]">
                       {item.rating}/5.0
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Purchase Section */}
-              <div className="bg-[#F7F3F0] p-6 rounded-lg">
-                <h3 className="font-serif text-lg font-semibold text-[#3C2F2F] mb-4">
+              {/* CTA Section - Marketplace Feel */}
+              <div className="bg-gradient-to-br from-[#B08968] to-[#9A7B5F] p-8 rounded-2xl text-white shadow-xl">
+                <h3 className="font-serif text-2xl font-bold mb-4">
                   Ready to Own This Piece of History?
                 </h3>
-                <p className="text-small text-[#6B5B5B] mb-6">
+                <p className="text-white/90 mb-6 leading-relaxed">
                   This authentic vinyl record comes with our guarantee of
                   quality and authenticity. Each record is carefully inspected
                   and graded by our experts.
                 </p>
-                <div className="flex space-x-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Button
-                    variant={item.inStock ? 'primary' : 'ghost'}
-                    size="md"
+                    variant="secondary"
+                    size="lg"
                     fullWidth
-                    disabled={!item.inStock}
-                    icon={ShoppingCart}
-                    iconPosition="left"
+                    className="bg-white text-[#B08968] hover:bg-[#F7F3F0] border-0 font-semibold"
                   >
-                    {item.inStock ? 'Add to Cart' : 'Out of Stock'}
+                    Contact to Purchase
                   </Button>
-                  <Button variant="outline" size="md">
-                    Contact Us
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="text-white border-white/30 hover:bg-white/10"
+                  >
+                    Add to Favorites
                   </Button>
+                </div>
+              </div>
+
+              {/* Additional Info */}
+              <div className="bg-[#F7F3F0] p-6 rounded-xl">
+                <div className="flex items-start space-x-3">
+                  <Shield className="w-6 h-6 text-[#B08968] mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-[#3C2F2F] mb-2">
+                      Authenticity Guarantee
+                    </h4>
+                    <p className="text-sm text-[#6B5B5B] leading-relaxed">
+                      All our vinyl records are authenticated and graded by
+                      music industry experts. We stand behind the quality and
+                      condition of every item in our collection.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -326,7 +379,22 @@ export async function generateMetadata({ params }) {
     return {
       title: `${item.name} by ${item.artist} | RetroVinyls`,
       description: item.description.substring(0, 160) + '...',
+      keywords: `${item.name}, ${item.artist}, ${item.genre}, vinyl record, ${item.year}`,
       openGraph: {
+        title: `${item.name} by ${item.artist}`,
+        description: item.description.substring(0, 160) + '...',
+        images: [
+          {
+            url: item.image,
+            width: 800,
+            height: 800,
+            alt: `${item.name} by ${item.artist}`,
+          },
+        ],
+        type: 'product',
+      },
+      twitter: {
+        card: 'summary_large_image',
         title: `${item.name} by ${item.artist}`,
         description: item.description.substring(0, 160) + '...',
         images: [item.image],
