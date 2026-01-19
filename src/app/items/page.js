@@ -1,47 +1,19 @@
 import { Star, Heart, ShoppingCart, Eye } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { itemsApi } from '@/utils/api';
+import ErrorState from '@/components/ui/ErrorState';
+import EmptyState from '@/components/ui/EmptyState';
 
-// Server Component - fetch data on the server
+// Server Component - fetch data using centralized API utilities
 async function getItems() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-    // Handle missing environment variable during build
-    if (!apiUrl) {
-      console.warn('NEXT_PUBLIC_API_URL is not defined');
-      return { success: false, error: 'API URL not configured' };
-    }
-
-    console.log('Fetching from:', `${apiUrl}/api/items`);
-
-    const res = await fetch(`${apiUrl}/api/items`, {
-      cache: 'no-store', // Always fetch fresh data
-      next: { revalidate: 0 }, // Ensure no caching in Vercel
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-    });
-
-    console.log('Response status:', res.status);
-    console.log('Response headers:', Object.fromEntries(res.headers.entries()));
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('Fetch error response:', errorText);
-      throw new Error(`HTTP ${res.status}: ${res.statusText} - ${errorText}`);
-    }
-
-    const data = await res.json();
-    console.log('Fetched data:', data);
-    return data;
+    const data = await itemsApi.getAll();
+    return { success: true, ...data };
   } catch (error) {
-    console.error('Error fetching items:', error);
     return {
       success: false,
-      error: `Failed to fetch items: ${error.message}`,
-      details: error.toString(),
+      error: error.message,
     };
   }
 }
@@ -49,41 +21,20 @@ async function getItems() {
 export default async function ItemsPage() {
   const result = await getItems();
 
-  // Handle error state
+  // Handle error state with professional error component
   if (!result.success) {
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24">
         <div className="max-w-7xl mx-auto container-padding">
-          <div className="text-center py-20">
-            <h1 className="heading-secondary text-[#3C2F2F] mb-4">
-              Unable to Load Items
-            </h1>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
-              <p className="text-body text-red-700 mb-4 font-medium">
-                Error Details:
-              </p>
-              <p className="text-small text-red-600 mb-2">
-                {result.error ||
-                  'Something went wrong while fetching the vinyl records.'}
-              </p>
-              {result.details && (
-                <details className="text-xs text-red-500 mt-2">
-                  <summary className="cursor-pointer font-medium">
-                    Technical Details
-                  </summary>
-                  <pre className="mt-2 p-2 bg-red-100 rounded text-left overflow-auto">
-                    {result.details}
-                  </pre>
-                </details>
-              )}
-              <p className="text-xs text-red-500 mt-4">
-                API URL: {process.env.NEXT_PUBLIC_API_URL || 'Not configured'}
-              </p>
-            </div>
-            <Link href="/" className="btn-primary">
-              Return Home
-            </Link>
-          </div>
+          <ErrorState
+            title="Unable to Load Collection"
+            message={
+              result.error ||
+              'We encountered an issue loading the vinyl records. Please try again later.'
+            }
+            showRetry={false}
+            showHomeLink={true}
+          />
         </div>
       </div>
     );
@@ -119,18 +70,20 @@ export default async function ItemsPage() {
       <div className="section-padding">
         <div className="max-w-7xl mx-auto container-padding">
           {items.length === 0 ? (
-            <div className="text-center py-20">
-              <h2 className="heading-tertiary text-[#3C2F2F] mb-4">
-                No Records Available
-              </h2>
-              <p className="text-body text-[#6B5B5B]">
-                Check back soon for new additions to our collection.
-              </p>
-            </div>
+            <EmptyState
+              title="No Records Available"
+              message="Our collection is currently empty. Check back soon for new additions, or be the first to add a vinyl record to our community."
+              actionText="Add First Record"
+              actionHref="/items/add"
+              showAction={true}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {items.map((item) => (
-                <div key={item._id} className="card-uniform group">
+                <div
+                  key={item._id}
+                  className="card-uniform group flex flex-col"
+                >
                   {/* Image Container */}
                   <div className="relative aspect-square overflow-hidden">
                     <Image
@@ -172,8 +125,8 @@ export default async function ItemsPage() {
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="card-content">
+                  {/* Content - grow ensures consistent card heights */}
+                  <div className="card-content grow flex flex-col">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-1">
                         <Star className="w-4 h-4 text-[#D4A574] fill-current" />
@@ -201,7 +154,7 @@ export default async function ItemsPage() {
                       by {item.artist}
                     </p>
 
-                    <p className="text-small text-[#6B5B5B] mb-4 text-ellipsis-2 leading-relaxed">
+                    <p className="text-small text-[#6B5B5B] mb-4 text-ellipsis-2 leading-relaxed grow">
                       {item.description}
                     </p>
 
@@ -218,7 +171,7 @@ export default async function ItemsPage() {
 
                     <Link
                       href={`/items/${item._id}`}
-                      className="btn-primary w-full mt-auto text-center"
+                      className="btn-primary w-full text-center mt-auto"
                     >
                       View Details
                     </Link>

@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, Plus } from 'lucide-react';
+import { ArrowLeft, Upload, Plus, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { validateVinylForm, formatVinylData } from '@/utils/validation';
+import { itemsApi } from '@/utils/api';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function AddItemPage() {
   const { data: session, status } = useSession();
@@ -26,28 +29,18 @@ export default function AddItemPage() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // Enhanced authentication check with detailed logging
-  console.log('🔐 AddItem - Session status:', status);
-  console.log('🔐 AddItem - Session data:', session);
-  console.log('🔐 AddItem - User:', session?.user);
-
+  // Authentication check without console.log for production
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[#B08968] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[#6B5B5B]">Checking authentication...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Checking authentication..." />
       </div>
     );
   }
 
   if (status === 'unauthenticated' || !session?.user?.email) {
-    console.log('🔐 AddItem - User not authenticated, redirecting to login');
-    console.log('🔐 AddItem - Status:', status);
-    console.log('🔐 AddItem - Session:', session);
-
     // Use window.location for hard redirect to ensure proper session handling
     if (typeof window !== 'undefined') {
       window.location.href = '/login?callbackUrl=/items/add';
@@ -55,84 +48,50 @@ export default function AddItemPage() {
 
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-[#6B5B5B]">Redirecting to login...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Redirecting to login..." />
       </div>
     );
   }
 
-  console.log('🔐 AddItem - User authenticated:', session.user.email);
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: newValue,
     }));
+
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrors({});
 
     try {
-      // Validate required fields
-      const requiredFields = [
-        'name',
-        'artist',
-        'description',
-        'price',
-        'image',
-        'genre',
-        'year',
-      ];
-      const missingFields = requiredFields.filter(
-        (field) => !formData[field].trim(),
-      );
+      // Validate form data
+      const validation = validateVinylForm(formData);
 
-      if (missingFields.length > 0) {
-        toast.error(
-          `Please fill in all required fields: ${missingFields.join(', ')}`,
-        );
+      if (!validation.isValid) {
+        setErrors(validation.errors);
+        toast.error('Please fix the errors below');
         setIsSubmitting(false);
         return;
       }
 
-      // Prepare data for API
-      const itemData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        originalPrice: formData.originalPrice
-          ? parseFloat(formData.originalPrice)
-          : null,
-        year: parseInt(formData.year),
-        rating: parseFloat(formData.rating),
-      };
+      // Format data for API submission
+      const itemData = formatVinylData(formData);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-      if (!apiUrl) {
-        toast.error('API configuration error');
-        return;
-      }
-
-      const response = await fetch(`${apiUrl}/api/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(itemData),
-        cache: 'no-store',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add item');
-      }
-
-      const result = await response.json();
+      // Submit using centralized API utility
+      const result = await itemsApi.create(itemData);
 
       toast.success('Vinyl record added successfully!');
 
@@ -151,12 +110,11 @@ export default function AddItemPage() {
         inStock: true,
       });
 
-      // Redirect to the new item or items list
+      // Redirect to the items list
       setTimeout(() => {
         router.push('/items');
       }, 1500);
     } catch (error) {
-      console.error('Error adding item:', error);
       toast.error(
         error.message || 'Failed to add vinyl record. Please try again.',
       );
@@ -194,6 +152,45 @@ export default function AddItemPage() {
     'Other',
   ];
 
+  // Helper component for form fields with error handling
+  const FormField = ({
+    label,
+    name,
+    type = 'text',
+    required = false,
+    children,
+    ...props
+  }) => (
+    <div>
+      <label
+        htmlFor={name}
+        className="block text-small font-medium text-[#3C2F2F] mb-2"
+      >
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      {children || (
+        <input
+          type={type}
+          id={name}
+          name={name}
+          value={formData[name]}
+          onChange={handleInputChange}
+          required={required}
+          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth ${
+            errors[name] ? 'border-red-300 bg-red-50' : 'border-[#E8E2DD]'
+          }`}
+          {...props}
+        />
+      )}
+      {errors[name] && (
+        <div className="flex items-center space-x-1 mt-1">
+          <AlertCircle className="w-4 h-4 text-red-500" />
+          <span className="text-xs text-red-600">{errors[name]}</span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#FFFBEB] pt-24">
       <div className="max-w-4xl mx-auto container-padding">
@@ -227,58 +224,32 @@ export default function AddItemPage() {
                 Basic Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Album Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
-                    placeholder="e.g., Abbey Road"
-                  />
-                </div>
+                <FormField
+                  label="Album Name"
+                  name="name"
+                  required
+                  placeholder="e.g., Abbey Road"
+                />
 
-                <div>
-                  <label
-                    htmlFor="artist"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Artist *
-                  </label>
-                  <input
-                    type="text"
-                    id="artist"
-                    name="artist"
-                    value={formData.artist}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
-                    placeholder="e.g., The Beatles"
-                  />
-                </div>
+                <FormField
+                  label="Artist"
+                  name="artist"
+                  required
+                  placeholder="e.g., The Beatles"
+                />
 
-                <div>
-                  <label
-                    htmlFor="genre"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Genre *
-                  </label>
+                <FormField label="Genre" name="genre" required>
                   <select
                     id="genre"
                     name="genre"
                     value={formData.genre}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth ${
+                      errors.genre
+                        ? 'border-red-300 bg-red-50'
+                        : 'border-[#E8E2DD]'
+                    }`}
                   >
                     <option value="">Select Genre</option>
                     {genreOptions.map((genre) => (
@@ -287,39 +258,22 @@ export default function AddItemPage() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </FormField>
 
-                <div>
-                  <label
-                    htmlFor="year"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Release Year *
-                  </label>
-                  <input
-                    type="number"
-                    id="year"
-                    name="year"
-                    value={formData.year}
-                    onChange={handleInputChange}
-                    required
-                    min="1900"
-                    max={new Date().getFullYear()}
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
-                    placeholder="e.g., 1969"
-                  />
-                </div>
+                <FormField
+                  label="Release Year"
+                  name="year"
+                  type="number"
+                  required
+                  min="1900"
+                  max={new Date().getFullYear()}
+                  placeholder="e.g., 1969"
+                />
               </div>
             </div>
 
             {/* Description */}
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-small font-medium text-[#3C2F2F] mb-2"
-              >
-                Description *
-              </label>
+            <FormField label="Description" name="description" required>
               <textarea
                 id="description"
                 name="description"
@@ -327,10 +281,14 @@ export default function AddItemPage() {
                 onChange={handleInputChange}
                 required
                 rows={4}
-                className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth resize-none"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth resize-none ${
+                  errors.description
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-[#E8E2DD]'
+                }`}
                 placeholder="Describe the vinyl record, its condition, historical significance, and any special features..."
               />
-            </div>
+            </FormField>
 
             {/* Pricing & Condition */}
             <div>
@@ -338,61 +296,37 @@ export default function AddItemPage() {
                 Pricing & Condition
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label
-                    htmlFor="price"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Current Price ($) *
-                  </label>
-                  <input
-                    type="number"
-                    id="price"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    required
-                    min="0"
-                    step="0.01"
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
-                    placeholder="189.99"
-                  />
-                </div>
+                <FormField
+                  label="Current Price ($)"
+                  name="price"
+                  type="number"
+                  required
+                  min="0"
+                  step="0.01"
+                  placeholder="189.99"
+                />
 
-                <div>
-                  <label
-                    htmlFor="originalPrice"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Original Price ($)
-                  </label>
-                  <input
-                    type="number"
-                    id="originalPrice"
-                    name="originalPrice"
-                    value={formData.originalPrice}
-                    onChange={handleInputChange}
-                    min="0"
-                    step="0.01"
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
-                    placeholder="240.00"
-                  />
-                </div>
+                <FormField
+                  label="Original Price ($)"
+                  name="originalPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="240.00"
+                />
 
-                <div>
-                  <label
-                    htmlFor="condition"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Condition *
-                  </label>
+                <FormField label="Condition" name="condition" required>
                   <select
                     id="condition"
                     name="condition"
                     value={formData.condition}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth ${
+                      errors.condition
+                        ? 'border-red-300 bg-red-50'
+                        : 'border-[#E8E2DD]'
+                    }`}
                   >
                     {conditionOptions.map((condition) => (
                       <option key={condition} value={condition}>
@@ -400,7 +334,7 @@ export default function AddItemPage() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </FormField>
               </div>
             </div>
 
@@ -410,13 +344,13 @@ export default function AddItemPage() {
                 Media & Rating
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    htmlFor="image"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Image URL *
-                  </label>
+                <FormField
+                  label="Image URL"
+                  name="image"
+                  type="url"
+                  required
+                  placeholder="https://images.unsplash.com/..."
+                >
                   <input
                     type="url"
                     id="image"
@@ -424,34 +358,27 @@ export default function AddItemPage() {
                     value={formData.image}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth ${
+                      errors.image
+                        ? 'border-red-300 bg-red-50'
+                        : 'border-[#E8E2DD]'
+                    }`}
                     placeholder="https://images.unsplash.com/..."
                   />
                   <p className="text-xs text-[#6B5B5B] mt-1">
                     Use a high-quality image URL (preferably from Unsplash)
                   </p>
-                </div>
+                </FormField>
 
-                <div>
-                  <label
-                    htmlFor="rating"
-                    className="block text-small font-medium text-[#3C2F2F] mb-2"
-                  >
-                    Rating (1-5)
-                  </label>
-                  <input
-                    type="number"
-                    id="rating"
-                    name="rating"
-                    value={formData.rating}
-                    onChange={handleInputChange}
-                    min="1"
-                    max="5"
-                    step="0.1"
-                    className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
-                    placeholder="4.5"
-                  />
-                </div>
+                <FormField
+                  label="Rating (1-5)"
+                  name="rating"
+                  type="number"
+                  min="1"
+                  max="5"
+                  step="0.1"
+                  placeholder="4.5"
+                />
               </div>
             </div>
 
@@ -486,21 +413,21 @@ export default function AddItemPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`px-8 py-3 rounded-lg font-medium transition-smooth ${
+                className={`px-8 py-3 rounded-lg font-medium transition-smooth flex items-center justify-center space-x-2 ${
                   isSubmitting
                     ? 'bg-[#E8E2DD] text-[#6B5B5B] cursor-not-allowed'
-                    : 'btn-primary'
+                    : 'btn-primary hover:bg-[#9A7B5F]'
                 }`}
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline mr-2"></div>
-                    Adding...
+                    <LoadingSpinner size="sm" inline className="mr-2" />
+                    <span>Adding Record...</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="w-4 h-4 inline mr-2" />
-                    Add Vinyl Record
+                    <Plus className="w-4 h-4" />
+                    <span>Add Vinyl Record</span>
                   </>
                 )}
               </button>

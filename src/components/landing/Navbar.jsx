@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Disc3, User, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { data: session, status } = useSession();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,6 +42,14 @@ export default function Navbar() {
     { name: 'Contact', href: '#contact' },
   ];
 
+  // Helper function to check if link is active
+  const isActiveLink = (href) => {
+    if (href === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(href);
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-elegant ${
@@ -61,48 +71,67 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="relative text-[#3C2F2F] font-medium text-sm tracking-wide hover:text-[#B08968] transition-smooth group"
+                className={`relative font-medium text-sm tracking-wide transition-smooth group ${
+                  isActiveLink(link.href)
+                    ? 'text-[#B08968]'
+                    : 'text-[#3C2F2F] hover:text-[#B08968]'
+                }`}
               >
                 {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#B08968] transition-all duration-300 group-hover:w-full"></span>
+                <span
+                  className={`absolute -bottom-1 left-0 h-0.5 bg-[#B08968] transition-all duration-300 ${
+                    isActiveLink(link.href)
+                      ? 'w-full'
+                      : 'w-0 group-hover:w-full'
+                  }`}
+                />
               </Link>
             ))}
 
             {/* Authentication Buttons */}
             {status === 'loading' ? (
-              <div className="w-20 h-10 bg-[#F7F3F0] rounded-lg animate-pulse"></div>
+              <div className="w-20 h-10 bg-[#F7F3F0] rounded-lg animate-pulse" />
             ) : session ? (
               <div className="flex items-center space-x-3">
                 {/* Add Item Button */}
-                <Link href="/items/add" className="btn-primary text-sm">
+                <Link
+                  href="/items/add"
+                  className={`btn-primary text-sm flex items-center space-x-2 ${
+                    pathname === '/items/add' ? 'bg-[#9A7B5F]' : ''
+                  }`}
+                >
                   <Plus className="w-4 h-4" />
-                  Add Item
+                  <span>Add Item</span>
                 </Link>
 
                 {/* User Info & Logout */}
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-[#6B5B5B]">
+                  <span className="text-sm text-[#6B5B5B] max-w-32 truncate">
                     {session.user?.name || session.user?.email}
                   </span>
                   <button
                     onClick={handleSignOut}
-                    className="text-[#6B5B5B] border border-[#E8E2DD] px-3 py-2 rounded-lg text-sm font-medium hover:bg-[#F7F3F0] transition-smooth"
+                    className="text-[#6B5B5B] border border-[#E8E2DD] px-3 py-2 rounded-lg text-sm font-medium hover:bg-[#F7F3F0] transition-smooth flex items-center space-x-1"
                   >
-                    <LogOut className="w-4 h-4 inline mr-1" />
-                    Logout
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
                   </button>
                 </div>
               </div>
             ) : (
-              <Link href="/login" className="btn-primary text-sm">
+              <Link
+                href="/login"
+                className={`btn-primary text-sm flex items-center space-x-2 ${
+                  pathname === '/login' ? 'bg-[#9A7B5F]' : ''
+                }`}
+              >
                 <User className="w-4 h-4" />
-                Login
+                <span>Login</span>
               </Link>
             )}
           </div>
@@ -130,7 +159,11 @@ export default function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className="block px-3 py-2 text-[#3C2F2F] font-medium hover:text-[#B08968] hover:bg-[#F7F3F0] rounded-lg transition-smooth"
+                    className={`block px-3 py-2 font-medium rounded-lg transition-smooth ${
+                      isActiveLink(link.href)
+                        ? 'text-[#B08968] bg-[#F7F3F0]'
+                        : 'text-[#3C2F2F] hover:text-[#B08968] hover:bg-[#F7F3F0]'
+                    }`}
                     onClick={toggleMenu}
                   >
                     {link.name}
@@ -140,28 +173,40 @@ export default function Navbar() {
                 <div className="pt-3 border-t border-[#E8E2DD] space-y-2">
                   {session ? (
                     <>
-                      <div className="px-3 py-2 text-sm text-[#6B5B5B]">
+                      <div className="px-3 py-2 text-sm text-[#6B5B5B] truncate">
                         {session.user?.name || session.user?.email}
                       </div>
                       <Link
                         href="/items/add"
-                        className="btn-primary w-full text-sm"
+                        className={`btn-primary w-full text-sm flex items-center justify-center space-x-2 ${
+                          pathname === '/items/add' ? 'bg-[#9A7B5F]' : ''
+                        }`}
+                        onClick={toggleMenu}
                       >
                         <Plus className="w-4 h-4" />
-                        Add Item
+                        <span>Add Item</span>
                       </Link>
                       <button
-                        onClick={handleSignOut}
-                        className="w-full text-[#6B5B5B] border border-[#E8E2DD] px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#F7F3F0] transition-smooth"
+                        onClick={() => {
+                          handleSignOut();
+                          toggleMenu();
+                        }}
+                        className="w-full text-[#6B5B5B] border border-[#E8E2DD] px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#F7F3F0] transition-smooth flex items-center justify-center space-x-2"
                       >
-                        <LogOut className="w-4 h-4 inline mr-2" />
-                        Logout
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
                       </button>
                     </>
                   ) : (
-                    <Link href="/login" className="btn-primary w-full text-sm">
+                    <Link
+                      href="/login"
+                      className={`btn-primary w-full text-sm flex items-center justify-center space-x-2 ${
+                        pathname === '/login' ? 'bg-[#9A7B5F]' : ''
+                      }`}
+                      onClick={toggleMenu}
+                    >
                       <User className="w-4 h-4" />
-                      Login
+                      <span>Login</span>
                     </Link>
                   )}
                 </div>
