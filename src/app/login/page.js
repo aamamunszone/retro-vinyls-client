@@ -62,30 +62,21 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      console.log('🔐 Login - Attempting sign in for:', formData.email);
-      console.log('🔐 Login - Callback URL:', callbackUrl);
-
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        callbackUrl: callbackUrl,
         redirect: false,
       });
 
-      console.log('🔐 Login - SignIn result:', result);
-
       if (result?.error) {
-        console.log('🔐 Login - Error:', result.error);
         toast.error('Invalid credentials. Please try again.');
       } else if (result?.ok) {
-        console.log('🔐 Login - Success, redirecting to:', callbackUrl);
         toast.success('Login successful! Welcome back.');
-
-        // Force a hard redirect to ensure session is properly set
-        window.location.href = callbackUrl;
+        // Manual redirect for better stability in serverless
+        router.push('/items/add');
       }
     } catch (error) {
-      console.error('🔐 Login - Exception:', error);
+      console.error('Login error:', error);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
