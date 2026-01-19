@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import {
   Star,
   Heart,
@@ -15,86 +16,97 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-export default function ItemDetailsPage({ params }) {
-  const { id } = params;
-  const router = useRouter();
+export default function ItemDetailsPage() {
+  const params = useParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const id = params?.id;
+
   useEffect(() => {
+    console.log('🔍 Component mounted, ID:', id);
+
+    if (!id) {
+      setError('No item ID provided');
+      setLoading(false);
+      return;
+    }
+
     const fetchItem = async () => {
       try {
+        console.log('🚀 Starting fetch for ID:', id);
         setLoading(true);
         setError(null);
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        console.log('🌐 API URL:', apiUrl);
+
         if (!apiUrl) {
           throw new Error('API configuration is missing');
         }
 
-        console.log('Fetching item from:', `${apiUrl}/api/items/${id}`);
+        const fetchUrl = `${apiUrl}/api/items/${id}`;
+        console.log('📡 Fetching from:', fetchUrl);
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-        const response = await fetch(`${apiUrl}/api/items/${id}`, {
-          cache: 'no-store',
+        const response = await fetch(fetchUrl, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
-          signal: controller.signal,
         });
 
-        clearTimeout(timeoutId);
+        console.log('📥 Response received:', {
+          status: response.status,
+          ok: response.ok,
+          statusText: response.statusText,
+        });
 
         if (!response.ok) {
           if (response.status === 404) {
-            // Item not found - redirect to not-found page
-            router.push('/items/not-found');
+            setError('Product Not Found');
             return;
           }
 
           const errorText = await response.text().catch(() => 'Unknown error');
+          console.error('❌ API Error Response:', errorText);
           throw new Error(
             `Server error: ${response.status} ${response.statusText}`,
           );
         }
 
         const result = await response.json();
+        console.log('✅ API Response parsed:', result);
 
         if (!result.success) {
           throw new Error(result.message || 'Failed to fetch item');
         }
 
+        if (!result.data) {
+          throw new Error('No item data received');
+        }
+
+        console.log('💾 Setting item data:', result.data);
         setItem(result.data);
       } catch (err) {
-        console.error('Error fetching item:', err);
-        if (err.name === 'AbortError') {
-          setError('Request timed out. Please try again.');
-        } else {
-          setError(err.message);
-        }
+        console.error('💥 Fetch error:', err);
+        setError(err.message || 'Failed to load item');
       } finally {
+        console.log('🏁 Fetch completed, setting loading to false');
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchItem();
-    }
-  }, [id, router]);
+    fetchItem();
+  }, [id]);
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FFFBEB]">
-        {/* Back Navigation */}
         <div className="pt-24 pb-8 bg-[#F7F3F0]">
           <div className="max-w-7xl mx-auto container-padding">
             <Link
@@ -107,42 +119,11 @@ export default function ItemDetailsPage({ params }) {
           </div>
         </div>
 
-        {/* Loading Content */}
         <div className="section-padding">
           <div className="max-w-7xl mx-auto container-padding">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-              {/* Image Skeleton */}
-              <div className="space-y-6">
-                <div className="aspect-square bg-[#F7F3F0] rounded-2xl animate-pulse"></div>
-                <div className="flex space-x-4">
-                  <div className="flex-1 h-14 bg-[#F7F3F0] rounded-lg animate-pulse"></div>
-                  <div className="w-14 h-14 bg-[#F7F3F0] rounded-xl animate-pulse"></div>
-                </div>
-              </div>
-
-              {/* Content Skeleton */}
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <div className="flex space-x-4">
-                    <div className="w-16 h-8 bg-[#F7F3F0] rounded-full animate-pulse"></div>
-                    <div className="w-20 h-8 bg-[#F7F3F0] rounded-full animate-pulse"></div>
-                  </div>
-                  <div className="w-3/4 h-12 bg-[#F7F3F0] rounded animate-pulse"></div>
-                  <div className="w-1/2 h-8 bg-[#F7F3F0] rounded animate-pulse"></div>
-                  <div className="w-32 h-10 bg-[#F7F3F0] rounded animate-pulse"></div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="w-full h-4 bg-[#F7F3F0] rounded animate-pulse"></div>
-                  <div className="w-5/6 h-4 bg-[#F7F3F0] rounded animate-pulse"></div>
-                  <div className="w-4/5 h-4 bg-[#F7F3F0] rounded animate-pulse"></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center mt-8">
+            <div className="flex items-center justify-center py-20">
               <LoadingSpinner size="lg" />
-              <span className="ml-3 text-[#6B5B5B]">
+              <span className="ml-4 text-lg text-[#6B5B5B]">
                 Loading vinyl details...
               </span>
             </div>
@@ -152,7 +133,6 @@ export default function ItemDetailsPage({ params }) {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24">
@@ -162,7 +142,9 @@ export default function ItemDetailsPage({ params }) {
               <AlertCircle className="w-8 h-8 text-red-600" />
             </div>
             <h1 className="heading-secondary text-[#3C2F2F] mb-4">
-              Unable to Load Item
+              {error.includes('Not Found')
+                ? 'Product Not Found'
+                : 'Unable to Load Item'}
             </h1>
             <p className="text-body text-[#6B5B5B] mb-8 max-w-md mx-auto">
               {error}
@@ -187,14 +169,13 @@ export default function ItemDetailsPage({ params }) {
     );
   }
 
-  // Item not found
   if (!item) {
     return (
       <div className="min-h-screen bg-[#FFFBEB] pt-24">
         <div className="max-w-7xl mx-auto container-padding">
           <div className="text-center py-20">
             <h1 className="heading-secondary text-[#3C2F2F] mb-4">
-              Item Not Found
+              Product Not Found
             </h1>
             <p className="text-body text-[#6B5B5B] mb-8">
               The vinyl record you're looking for could not be found.
@@ -212,7 +193,6 @@ export default function ItemDetailsPage({ params }) {
 
   return (
     <div className="min-h-screen bg-[#FFFBEB]">
-      {/* Professional Back Navigation */}
       <div className="pt-24 pb-8 bg-[#F7F3F0]">
         <div className="max-w-7xl mx-auto container-padding">
           <Link
@@ -225,11 +205,9 @@ export default function ItemDetailsPage({ params }) {
         </div>
       </div>
 
-      {/* Item Details - Professional 2-Column Layout */}
       <div className="section-padding">
         <div className="max-w-7xl mx-auto container-padding">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-            {/* Left Column - High-Resolution Image */}
             <div className="space-y-6">
               <div className="relative aspect-square overflow-hidden rounded-2xl shadow-2xl border border-[#E8E2DD]">
                 <Image
@@ -240,7 +218,6 @@ export default function ItemDetailsPage({ params }) {
                   priority
                 />
 
-                {/* Premium Badges */}
                 <div className="absolute top-6 left-6">
                   <div className="flex items-center space-x-1 bg-[#B08968] text-white px-3 py-2 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm">
                     <Award className="w-4 h-4" />
@@ -254,7 +231,6 @@ export default function ItemDetailsPage({ params }) {
                   </span>
                 </div>
 
-                {/* Stock Status Badge */}
                 <div className="absolute bottom-6 left-6">
                   <div
                     className={`flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-medium shadow-lg backdrop-blur-md ${
@@ -273,7 +249,6 @@ export default function ItemDetailsPage({ params }) {
                 </div>
               </div>
 
-              {/* Quick Actions - Mobile Optimized */}
               <div className="flex space-x-4">
                 <Button
                   variant={item.inStock ? 'primary' : 'ghost'}
@@ -282,7 +257,6 @@ export default function ItemDetailsPage({ params }) {
                   disabled={!item.inStock}
                   icon={ShoppingCart}
                   iconPosition="left"
-                  className="btn-premium"
                 >
                   {item.inStock ? 'Add to Cart' : 'Out of Stock'}
                 </Button>
@@ -292,11 +266,8 @@ export default function ItemDetailsPage({ params }) {
               </div>
             </div>
 
-            {/* Right Column - Product Information */}
             <div className="space-y-8">
-              {/* Header Section */}
               <div>
-                {/* Rating & Genre */}
                 <div className="flex items-center space-x-4 mb-6">
                   <div className="flex items-center space-x-1 bg-[#F7F3F0] px-3 py-1.5 rounded-full">
                     <Star className="w-4 h-4 text-[#D4A574] fill-current" />
@@ -310,12 +281,10 @@ export default function ItemDetailsPage({ params }) {
                   </div>
                 </div>
 
-                {/* Title - Large Elegant Serif Typography */}
                 <h1 className="font-serif text-4xl lg:text-5xl font-bold text-[#3C2F2F] mb-4 leading-tight">
                   {item.name}
                 </h1>
 
-                {/* Artist - Subtle Badge Style */}
                 <div className="mb-8">
                   <span className="text-lg text-[#6B5B5B]">by </span>
                   <span className="text-xl font-semibold text-[#3C2F2F] bg-[#F7F3F0] px-3 py-1 rounded-lg">
@@ -323,7 +292,6 @@ export default function ItemDetailsPage({ params }) {
                   </span>
                 </div>
 
-                {/* Price - Prominent and Clear */}
                 <div className="flex items-baseline space-x-4 mb-8">
                   <div className="font-serif text-4xl font-bold text-[#B08968]">
                     ${item.price}
@@ -341,7 +309,6 @@ export default function ItemDetailsPage({ params }) {
                 </div>
               </div>
 
-              {/* Description - Clean, Readable Paragraph */}
               <div className="bg-[#F7F3F0] p-6 rounded-xl">
                 <h2 className="font-serif text-xl font-semibold text-[#3C2F2F] mb-4">
                   About This Record
@@ -351,7 +318,6 @@ export default function ItemDetailsPage({ params }) {
                 </p>
               </div>
 
-              {/* Specifications - Small Grid Layout */}
               <div>
                 <h2 className="font-serif text-xl font-semibold text-[#3C2F2F] mb-6">
                   Specifications
@@ -407,7 +373,6 @@ export default function ItemDetailsPage({ params }) {
                 </div>
               </div>
 
-              {/* CTA Section - Marketplace Feel */}
               <div className="bg-gradient-to-br from-[#B08968] to-[#9A7B5F] p-8 rounded-2xl text-white shadow-xl">
                 <h3 className="font-serif text-2xl font-bold mb-4">
                   Ready to Own This Piece of History?
@@ -433,23 +398,6 @@ export default function ItemDetailsPage({ params }) {
                   >
                     Add to Favorites
                   </Button>
-                </div>
-              </div>
-
-              {/* Additional Info */}
-              <div className="bg-[#F7F3F0] p-6 rounded-xl">
-                <div className="flex items-start space-x-3">
-                  <Shield className="w-6 h-6 text-[#B08968] mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-[#3C2F2F] mb-2">
-                      Authenticity Guarantee
-                    </h4>
-                    <p className="text-sm text-[#6B5B5B] leading-relaxed">
-                      All our vinyl records are authenticated and graded by
-                      music industry experts. We stand behind the quality and
-                      condition of every item in our collection.
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
