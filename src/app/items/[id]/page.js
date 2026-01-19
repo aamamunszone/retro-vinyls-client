@@ -10,6 +10,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import Button from '@/components/ui/Button';
 
 // Server Component - fetch single item data
 async function getItem(id) {
@@ -63,8 +64,10 @@ export default async function ItemDetailsPage({ params }) {
             <p className="text-body text-[#6B5B5B] mb-8">
               Something went wrong while fetching this vinyl record.
             </p>
-            <Link href="/items" className="btn-primary">
-              Back to Collection
+            <Link href="/items">
+              <Button variant="primary" size="md">
+                Back to Collection
+              </Button>
             </Link>
           </div>
         </div>
@@ -123,10 +126,15 @@ export default async function ItemDetailsPage({ params }) {
 
               {/* Quick Actions */}
               <div className="flex space-x-4">
-                <button className="flex-1 btn-primary">
-                  <ShoppingCart className="w-5 h-5" />
+                <Button
+                  variant="primary"
+                  size="md"
+                  fullWidth
+                  icon={ShoppingCart}
+                  iconPosition="left"
+                >
                   Add to Cart
-                </button>
+                </Button>
                 <button className="w-12 h-12 border border-[#E8E2DD] rounded-lg flex items-center justify-center hover:bg-[#F7F3F0] transition-smooth">
                   <Heart className="w-5 h-5 text-[#6B5B5B]" />
                 </button>
@@ -263,16 +271,19 @@ export default async function ItemDetailsPage({ params }) {
                   and graded by our experts.
                 </p>
                 <div className="flex space-x-4">
-                  <button
-                    className={`flex-1 ${item.inStock ? 'btn-primary' : 'btn-disabled'}`}
+                  <Button
+                    variant={item.inStock ? 'primary' : 'ghost'}
+                    size="md"
+                    fullWidth
                     disabled={!item.inStock}
+                    icon={ShoppingCart}
+                    iconPosition="left"
                   >
-                    <ShoppingCart className="w-5 h-5" />
                     {item.inStock ? 'Add to Cart' : 'Out of Stock'}
-                  </button>
-                  <button className="px-6 py-3 border border-[#B08968] text-[#B08968] rounded-lg font-medium hover:bg-[#B08968] hover:text-white transition-smooth">
+                  </Button>
+                  <Button variant="outline" size="md">
                     Contact Us
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

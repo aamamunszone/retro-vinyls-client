@@ -72,8 +72,8 @@ export default async function ItemsPage() {
         <div className="max-w-7xl mx-auto container-padding">
           {items.length === 0 ? (
             <EmptyState
-              title="No Records Available"
-              message="Our collection is currently empty. Check back soon for new additions, or be the first to add a vinyl record to our community."
+              title="No Vinyl Records Found"
+              message="Our collection is currently empty, but every great collection starts with a single record. Be the first to add a piece of musical history to our community."
               actionText="Add First Record"
               actionHref="/items/add"
               showAction={true}
@@ -170,11 +170,10 @@ export default async function ItemsPage() {
                       </span>
                     </div>
 
-                    <Link
-                      href={`/items/${item._id}`}
-                      className="btn-primary w-full text-center mt-auto"
-                    >
-                      View Details
+                    <Link href={`/items/${item._id}`} className="mt-auto">
+                      <Button variant="primary" size="sm" fullWidth>
+                        View Details
+                      </Button>
                     </Link>
                   </div>
                 </div>

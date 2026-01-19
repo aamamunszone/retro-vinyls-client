@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* RetroVinyls - Minimalistic Elegant Design System */
+/* RetroVinyls - Professional Design System with Enhanced Typography */
 :root {
   --cream-white: #fffbeb;
   --warm-gray: #f7f3f0;
@@ -9,20 +9,23 @@
   --accent-brown: #b08968;
   --accent-gold: #d4a574;
   --light-border: #e8e2dd;
+  --stone-border: #d6d3d1;
   --shadow-light: rgba(60, 47, 47, 0.08);
   --shadow-medium: rgba(60, 47, 47, 0.12);
   --shadow-heavy: rgba(60, 47, 47, 0.16);
+  --shadow-premium: rgba(60, 47, 47, 0.2);
 }
 
 @theme inline {
   --color-background: var(--cream-white);
   --color-foreground: var(--primary-text);
   --font-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
 }
 
-/* Base Styles */
+/* Base Styles with Enhanced Typography */
 * {
   box-sizing: border-box;
 }
@@ -35,70 +38,80 @@ body {
   background-color: var(--cream-white);
   color: var(--primary-text);
   font-family:
+    'Inter',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
-/* Typography System */
+/* Professional Typography System */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 600;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 700;
   color: var(--primary-text);
   line-height: 1.2;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5em;
 }
 
 .heading-primary {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 700;
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 800;
   line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .heading-secondary {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
 }
 
 .heading-tertiary {
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
 .text-body {
   font-family:
+    'Inter',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
   font-size: clamp(1rem, 2vw, 1.125rem);
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--secondary-text);
+  font-weight: 400;
 }
 
 .text-small {
   font-family:
+    'Inter',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 /* Elegant Glassmorphism */
@@ -172,21 +185,22 @@ h6 {
   }
 }
 
-/* Card System */
+/* Premium Card System with Enhanced Visual Hierarchy */
 .card-uniform {
   height: 100%;
   display: flex;
   flex-direction: column;
   background: white;
-  border-radius: 12px;
-  border: 1px solid var(--light-border);
+  border-radius: 16px;
+  border: 2px solid var(--stone-border);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px var(--shadow-light);
 }
 
 .card-uniform:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px var(--shadow-medium);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px var(--shadow-premium);
   border-color: var(--accent-brown);
 }
 
@@ -194,90 +208,26 @@ h6 {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
+  padding: 2rem;
 }
 
 .card-content > *:last-child {
   margin-top: auto;
 }
 
-/* Button System */
-.btn-primary {
-  background-color: var(--accent-brown);
-  color: white;
-  font-weight: 500;
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  font-size: 1rem;
-  transition: all 0.2s ease-out;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+/* Text Overflow Handling */
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.btn-primary:hover {
-  background-color: #9a7b5f;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(176, 137, 104, 0.3);
-}
-
-.btn-secondary {
-  background-color: transparent;
-  color: var(--accent-brown);
-  font-weight: 500;
-  padding: 0.75rem 2rem;
-  border: 2px solid var(--accent-brown);
-  border-radius: 8px;
-  cursor: pointer;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  font-size: 1rem;
-  transition: all 0.2s ease-out;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn-secondary:hover {
-  background-color: var(--accent-brown);
-  color: white;
-  transform: translateY(-1px);
-}
-
-.btn-disabled {
-  background-color: #e5e7eb;
-  color: #9ca3af;
-  font-weight: 500;
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
-  border: none;
-  cursor: not-allowed;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  font-size: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  opacity: 0.6;
+.text-ellipsis-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Swiper Customization */
@@ -326,7 +276,7 @@ a:focus {
   outline-offset: 2px;
 }
 
-/* Responsive Utilities */
+/* Responsive Utilities with Mathematical Consistency */
 .container-padding {
   padding-left: 1rem;
   padding-right: 1rem;
@@ -339,17 +289,24 @@ a:focus {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .container-padding {
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding-left: 3rem;
+    padding-right: 3rem;
   }
 }
 
-/* Section Spacing - Consistent breathable layout */
+@media (min-width: 1024px) {
+  .container-padding {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+/* Section Spacing - Mathematical Consistency (4rem base, 1.5x multiplier) */
 .section-padding {
-  padding-top: 5rem;
-  padding-bottom: 5rem;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
 }
 
 @media (min-width: 768px) {
@@ -366,17 +323,9 @@ a:focus {
   }
 }
 
-/* Text Overflow Handling */
-.text-ellipsis-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.text-ellipsis-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+@media (min-width: 1280px) {
+  .section-padding {
+    padding-top: 10rem;
+    padding-bottom: 10rem;
+  }
 }

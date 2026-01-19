@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, Plus, AlertCircle } from 'lucide-react';
@@ -8,8 +8,54 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { validateVinylForm, formatVinylData } from '@/utils/validation';
 import { itemsApi } from '@/utils/api';
+import { GENRE_OPTIONS, CONDITION_OPTIONS } from '@/utils/constants';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import Button from '@/components/ui/Button';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+
+// Stable FormField component outside of main component to prevent re-creation
+const FormField = ({
+  label,
+  name,
+  type = 'text',
+  required = false,
+  value,
+  onChange,
+  error,
+  children,
+  ...props
+}) => (
+  <div>
+    <label
+      htmlFor={name}
+      className="block text-sm font-semibold text-[#3C2F2F] mb-3 tracking-wide"
+    >
+      {label} {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
+    {children || (
+      <input
+        type={type}
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        required={required}
+        className={`w-full px-4 py-2.5 border-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#B08968]/20 focus:border-[#B08968] transition-all duration-200 ${
+          error
+            ? 'border-red-300 bg-red-50/50 focus:border-red-400 focus:ring-red-100'
+            : 'border-stone-200 bg-white hover:border-stone-300 focus:bg-white'
+        }`}
+        {...props}
+      />
+    )}
+    {error && (
+      <div className="flex items-center space-x-2 mt-2">
+        <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+        <span className="text-sm text-red-600 font-medium">{error}</span>
+      </div>
+    )}
+  </div>
+);
 
 export default function AddItemPage() {
   const { data: session, status } = useSession();
@@ -32,6 +78,32 @@ export default function AddItemPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Stable handleInputChange using useCallback to prevent re-creation
+  const handleInputChange = useCallback(
+    (e) => {
+      const { name, value, type, checked } = e.target;
+      const newValue = type === 'checkbox' ? checked : value;
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: newValue,
+      }));
+
+      // Clear error for this field when user starts typing
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: '',
+        }));
+      }
+    },
+    [errors],
+  );
+
+  // Memoized options to prevent re-creation
+  const conditionOptions = useMemo(() => CONDITION_OPTIONS, []);
+  const genreOptions = useMemo(() => GENRE_OPTIONS, []);
+
   // Authentication check without console.log for production
   if (status === 'loading') {
     return (
@@ -53,24 +125,6 @@ export default function AddItemPage() {
       </div>
     );
   }
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: newValue,
-    }));
-
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -126,74 +180,6 @@ export default function AddItemPage() {
     }
   };
 
-  const conditionOptions = [
-    'Mint',
-    'Near Mint',
-    'Very Good+',
-    'Very Good',
-    'Good+',
-    'Good',
-    'Fair',
-  ];
-
-  const genreOptions = [
-    'Rock',
-    'Jazz',
-    'Blues',
-    'Soul',
-    'Funk',
-    'Pop',
-    'Classical',
-    'Folk',
-    'Country',
-    'Electronic',
-    'Hip Hop',
-    'Reggae',
-    'Progressive Rock',
-    'Punk',
-    'Metal',
-    'Other',
-  ];
-
-  // Helper component for form fields with error handling
-  const FormField = ({
-    label,
-    name,
-    type = 'text',
-    required = false,
-    children,
-    ...props
-  }) => (
-    <div>
-      <label
-        htmlFor={name}
-        className="block text-small font-medium text-[#3C2F2F] mb-2"
-      >
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      {children || (
-        <input
-          type={type}
-          id={name}
-          name={name}
-          value={formData[name]}
-          onChange={handleInputChange}
-          required={required}
-          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth ${
-            errors[name] ? 'border-red-300 bg-red-50' : 'border-[#E8E2DD]'
-          }`}
-          {...props}
-        />
-      )}
-      {errors[name] && (
-        <div className="flex items-center space-x-1 mt-1">
-          <AlertCircle className="w-4 h-4 text-red-500" />
-          <span className="text-xs text-red-600">{errors[name]}</span>
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-[#FFFBEB] pt-24">
       <div className="max-w-4xl mx-auto container-padding">
@@ -231,6 +217,9 @@ export default function AddItemPage() {
                   label="Album Name"
                   name="name"
                   required
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  error={errors.name}
                   placeholder="e.g., Abbey Road"
                 />
 
@@ -238,20 +227,30 @@ export default function AddItemPage() {
                   label="Artist"
                   name="artist"
                   required
+                  value={formData.artist}
+                  onChange={handleInputChange}
+                  error={errors.artist}
                   placeholder="e.g., The Beatles"
                 />
 
-                <FormField label="Genre" name="genre" required>
+                <FormField
+                  label="Genre"
+                  name="genre"
+                  required
+                  value={formData.genre}
+                  onChange={handleInputChange}
+                  error={errors.genre}
+                >
                   <select
                     id="genre"
                     name="genre"
                     value={formData.genre}
                     onChange={handleInputChange}
                     required
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth ${
+                    className={`w-full px-4 py-2.5 border-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#B08968]/20 focus:border-[#B08968] transition-all duration-200 ${
                       errors.genre
-                        ? 'border-red-300 bg-red-50'
-                        : 'border-[#E8E2DD]'
+                        ? 'border-red-300 bg-red-50/50 focus:border-red-400 focus:ring-red-100'
+                        : 'border-stone-200 bg-white hover:border-stone-300 focus:bg-white'
                     }`}
                   >
                     <option value="">Select Genre</option>
@@ -268,6 +267,9 @@ export default function AddItemPage() {
                   name="year"
                   type="number"
                   required
+                  value={formData.year}
+                  onChange={handleInputChange}
+                  error={errors.year}
                   min="1900"
                   max={new Date().getFullYear()}
                   placeholder="e.g., 1969"
@@ -276,7 +278,14 @@ export default function AddItemPage() {
             </div>
 
             {/* Description */}
-            <FormField label="Description" name="description" required>
+            <FormField
+              label="Description"
+              name="description"
+              required
+              value={formData.description}
+              onChange={handleInputChange}
+              error={errors.description}
+            >
               <textarea
                 id="description"
                 name="description"
@@ -284,10 +293,10 @@ export default function AddItemPage() {
                 onChange={handleInputChange}
                 required
                 rows={4}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth resize-none ${
+                className={`w-full px-4 py-2.5 border-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#B08968]/20 focus:border-[#B08968] transition-all duration-200 resize-none ${
                   errors.description
-                    ? 'border-red-300 bg-red-50'
-                    : 'border-[#E8E2DD]'
+                    ? 'border-red-300 bg-red-50/50 focus:border-red-400 focus:ring-red-100'
+                    : 'border-stone-200 bg-white hover:border-stone-300 focus:bg-white'
                 }`}
                 placeholder="Describe the vinyl record, its condition, historical significance, and any special features..."
               />
@@ -405,35 +414,25 @@ export default function AddItemPage() {
               </div>
             </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-[#E8E2DD]">
-              <Link
-                href="/items"
-                className="px-6 py-3 border border-[#E8E2DD] text-[#6B5B5B] rounded-lg font-medium hover:bg-[#F7F3F0] transition-smooth"
-              >
-                Cancel
+            {/* Submit Buttons with refined proportions */}
+            <div className="flex justify-end space-x-4 pt-8 border-t border-stone-200">
+              <Link href="/items">
+                <Button variant="ghost" size="md">
+                  Cancel
+                </Button>
               </Link>
-              <button
+
+              <Button
                 type="submit"
+                variant="primary"
+                size="md"
+                isLoading={isSubmitting}
                 disabled={isSubmitting}
-                className={`px-8 py-3 rounded-lg font-medium transition-smooth flex items-center justify-center space-x-2 ${
-                  isSubmitting
-                    ? 'bg-[#E8E2DD] text-[#6B5B5B] cursor-not-allowed'
-                    : 'btn-primary hover:bg-[#9A7B5F]'
-                }`}
+                icon={Plus}
+                iconPosition="left"
               >
-                {isSubmitting ? (
-                  <>
-                    <LoadingSpinner size="sm" inline className="mr-2" />
-                    <span>Adding Record...</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    <span>Add Vinyl Record</span>
-                  </>
-                )}
-              </button>
+                {isSubmitting ? 'Adding Record...' : 'Add Vinyl Record'}
+              </Button>
             </div>
           </form>
         </div>

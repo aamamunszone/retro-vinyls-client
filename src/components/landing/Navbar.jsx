@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { NAV_LINKS } from '@/utils/constants';
+import Button from '@/components/ui/Button';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -79,12 +81,7 @@ export default function Navbar() {
     }
   };
 
-  const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Collection', href: '/items' },
-    { name: 'About', href: '#about' },
-    { name: 'Contact', href: '#contact' },
-  ];
+  const navLinks = NAV_LINKS;
 
   // Helper function to check if link is active
   const isActiveLink = (href) => {
@@ -147,14 +144,16 @@ export default function Navbar() {
             ) : session ? (
               <div className="flex items-center space-x-4">
                 {/* Add Item Button */}
-                <Link
-                  href="/items/add"
-                  className={`btn-primary text-sm flex items-center space-x-2 ${
-                    pathname === '/items/add' ? 'bg-[#9A7B5F]' : ''
-                  }`}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Item</span>
+                <Link href="/items/add">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    icon={Plus}
+                    iconPosition="left"
+                    className={pathname === '/items/add' ? 'bg-[#9A7B5F]' : ''}
+                  >
+                    Add Item
+                  </Button>
                 </Link>
 
                 {/* Profile Dropdown */}
@@ -230,14 +229,16 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className={`btn-primary text-sm flex items-center space-x-2 ${
-                  pathname === '/login' ? 'bg-[#9A7B5F]' : ''
-                }`}
-              >
-                <User className="w-4 h-4" />
-                <span>Login</span>
+              <Link href="/login">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={User}
+                  iconPosition="left"
+                  className={pathname === '/login' ? 'bg-[#9A7B5F]' : ''}
+                >
+                  Login
+                </Button>
               </Link>
             )}
           </div>
@@ -304,13 +305,20 @@ export default function Navbar() {
                       </div>
                       <Link
                         href="/items/add"
-                        className={`btn-primary w-full text-sm flex items-center justify-center space-x-2 ${
+                        className={
                           pathname === '/items/add' ? 'bg-[#9A7B5F]' : ''
-                        }`}
+                        }
                         onClick={toggleMenu}
                       >
-                        <Plus className="w-4 h-4" />
-                        <span>Add New Record</span>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          fullWidth
+                          icon={Plus}
+                          iconPosition="left"
+                        >
+                          Add New Record
+                        </Button>
                       </Link>
                       <button
                         onClick={() => {
@@ -338,15 +346,17 @@ export default function Navbar() {
                       </button>
                     </>
                   ) : (
-                    <Link
-                      href="/login"
-                      className={`btn-primary w-full text-sm flex items-center justify-center space-x-2 ${
-                        pathname === '/login' ? 'bg-[#9A7B5F]' : ''
-                      }`}
-                      onClick={toggleMenu}
-                    >
-                      <User className="w-4 h-4" />
-                      <span>Login</span>
+                    <Link href="/login" onClick={toggleMenu}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        fullWidth
+                        icon={User}
+                        iconPosition="left"
+                        className={pathname === '/login' ? 'bg-[#9A7B5F]' : ''}
+                      >
+                        Login
+                      </Button>
                     </Link>
                   )}
                 </div>

@@ -5,6 +5,7 @@
 
 import { Package, Plus } from 'lucide-react';
 import Link from 'next/link';
+import Button from '@/components/ui/Button';
 
 export default function EmptyState({
   title = 'No items found',
@@ -27,12 +28,10 @@ export default function EmptyState({
         </p>
 
         {showAction && (
-          <Link
-            href={actionHref}
-            className="btn-primary inline-flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{actionText}</span>
+          <Link href={actionHref}>
+            <Button variant="primary" size="md" icon={Plus} iconPosition="left">
+              {actionText}
+            </Button>
           </Link>
         )}
       </div>

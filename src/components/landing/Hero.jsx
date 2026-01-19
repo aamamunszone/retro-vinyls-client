@@ -6,6 +6,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay, EffectFade } from 'swiper/modules';
 import Image from 'next/image';
 import Link from 'next/link';
+import Button from '@/components/ui/Button';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -15,8 +16,11 @@ import 'swiper/css/effect-fade';
 export default function Hero() {
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+
     const checkDesktop = () => {
       setIsDesktop(window.innerWidth >= 1024);
     };
@@ -99,8 +103,8 @@ export default function Hero() {
                 />
 
                 {/* Elegant Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/30 to-black/20"></div>
+                <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/40"></div>
               </div>
 
               {/* Content */}
@@ -121,20 +125,29 @@ export default function Hero() {
                   {slide.subtitle}
                 </p>
 
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <Link
-                    href="/items"
-                    className="btn-primary bg-[#B08968] hover:bg-[#9A7B5F] px-8 py-4 text-lg"
-                  >
-                    {slide.cta}
-                    <ArrowRight className="w-5 h-5" />
+                {/* CTA Buttons with refined proportions and spacing */}
+                <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-8">
+                  <Link href="/items">
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      icon={ArrowRight}
+                      iconPosition="right"
+                      className="shadow-lg"
+                    >
+                      {slide.cta}
+                    </Button>
                   </Link>
 
-                  <button className="btn-secondary border-white text-white hover:bg-white hover:text-[#3C2F2F] px-8 py-4 text-lg">
-                    <Play className="w-5 h-5" />
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    icon={Play}
+                    iconPosition="left"
+                    className="border-white/80 text-white hover:bg-white/10 hover:border-white backdrop-blur-sm"
+                  >
                     Watch Story
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -143,7 +156,7 @@ export default function Hero() {
       </Swiper>
 
       {/* Desktop Scroll Indicator */}
-      {isDesktop && (
+      {isMounted && isDesktop && (
         <div
           className={`scroll-indicator ${!showScrollIndicator ? 'hidden' : ''}`}
         >

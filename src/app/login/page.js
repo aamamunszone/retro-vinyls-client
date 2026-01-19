@@ -7,6 +7,7 @@ import { Eye, EyeOff, Disc3, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import Button from '@/components/ui/Button';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 
 export default function LoginPage() {
@@ -140,7 +141,7 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
+                className="w-full px-4 py-2.5 border-2 border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#B08968]/20 focus:border-[#B08968] transition-all duration-200 font-medium"
                 placeholder="Enter your email"
               />
             </div>
@@ -161,7 +162,7 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 pr-12 border border-[#E8E2DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B08968] focus:border-transparent transition-smooth"
+                  className="w-full px-4 py-2.5 pr-12 border-2 border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#B08968]/20 focus:border-[#B08968] transition-all duration-200 font-medium"
                   placeholder="Enter your password"
                 />
                 <button
@@ -179,24 +180,16 @@ export default function LoginPage() {
             </div>
 
             {/* Submit Button */}
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="md"
+              fullWidth
+              isLoading={isLoading}
               disabled={isLoading}
-              className={`w-full py-3 px-4 rounded-lg font-medium transition-smooth flex items-center justify-center space-x-2 ${
-                isLoading
-                  ? 'bg-[#E8E2DD] text-[#6B5B5B] cursor-not-allowed'
-                  : 'btn-primary hover:bg-[#9A7B5F]'
-              }`}
             >
-              {isLoading ? (
-                <>
-                  <LoadingSpinner size="sm" inline />
-                  <span>Signing In...</span>
-                </>
-              ) : (
-                <span>Sign In</span>
-              )}
-            </button>
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </Button>
           </form>
 
           {/* Footer */}

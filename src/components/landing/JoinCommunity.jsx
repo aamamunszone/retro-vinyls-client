@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Mail, Bell, Users, Disc3, ArrowRight, Check } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
 export default function JoinCommunity() {
   const [email, setEmail] = useState('');
@@ -156,13 +157,17 @@ export default function JoinCommunity() {
                   </label>
                 </div>
 
-                <button
+                <Button
                   type="submit"
-                  className="w-full bg-[#CC5500] text-white py-4 rounded-lg font-semibold text-lg hover:bg-[#B84A00] transition-colors duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  icon={ArrowRight}
+                  iconPosition="right"
+                  className="shadow-lg hover:shadow-xl"
                 >
-                  <span>Join the Community</span>
-                  <ArrowRight className="h-5 w-5" />
-                </button>
+                  Join the Community
+                </Button>
               </form>
             ) : (
               <div className="text-center py-8">

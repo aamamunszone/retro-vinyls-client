@@ -1,5 +1,6 @@
 import { Music, Award, Users, Clock } from 'lucide-react';
 import Image from 'next/image';
+import Button from '@/components/ui/Button';
 
 export default function AboutPassion() {
   const features = [
@@ -35,7 +36,7 @@ export default function AboutPassion() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Image Side */}
           <div className="relative">
-            <div className="aspect-[4/5] relative rounded-2xl overflow-hidden shadow-prominent">
+            <div className="aspect-4/5 relative rounded-2xl overflow-hidden shadow-prominent">
               <Image
                 src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
                 alt="Vintage turntable with vinyl record"
@@ -110,7 +111,9 @@ export default function AboutPassion() {
 
             {/* CTA */}
             <div className="pt-4">
-              <button className="btn-primary">Learn Our Story</button>
+              <Button variant="primary" size="md">
+                Learn Our Story
+              </Button>
             </div>
           </div>
         </div>

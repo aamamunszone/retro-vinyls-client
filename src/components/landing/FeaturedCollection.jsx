@@ -3,6 +3,7 @@
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Button from '@/components/ui/Button';
 
 export default function FeaturedCollection() {
   const featuredItems = [
@@ -151,9 +152,14 @@ export default function FeaturedCollection() {
                   {item.description}
                 </p>
 
-                <button className="btn-primary w-full mt-auto">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  fullWidth
+                  className="mt-auto"
+                >
                   View Details
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -161,8 +167,10 @@ export default function FeaturedCollection() {
 
         {/* CTA */}
         <div className="text-center">
-          <Link href="/items" className="btn-secondary">
-            View Complete Collection
+          <Link href="/items">
+            <Button variant="secondary" size="lg">
+              View Complete Collection
+            </Button>
           </Link>
         </div>
       </div>

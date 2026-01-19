@@ -5,6 +5,7 @@
 
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
+import Button from '@/components/ui/Button';
 
 export default function ErrorState({
   title = 'Something went wrong',
@@ -28,22 +29,27 @@ export default function ErrorState({
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           {showRetry && onRetry && (
-            <button
+            <Button
               onClick={onRetry}
-              className="btn-secondary flex items-center justify-center space-x-2"
+              variant="secondary"
+              size="md"
+              icon={RefreshCw}
+              iconPosition="left"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span>Try Again</span>
-            </button>
+              Try Again
+            </Button>
           )}
 
           {showHomeLink && (
-            <Link
-              href="/"
-              className="btn-primary flex items-center justify-center space-x-2"
-            >
-              <Home className="w-4 h-4" />
-              <span>Return Home</span>
+            <Link href="/">
+              <Button
+                variant="primary"
+                size="md"
+                icon={Home}
+                iconPosition="left"
+              >
+                Return Home
+              </Button>
             </Link>
           )}
         </div>
